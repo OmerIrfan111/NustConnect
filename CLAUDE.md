@@ -89,6 +89,8 @@ See `docs/PROJECT_PLAN.md` §3 for the full scope and QA gate 0.
    what is next, and any blockers or contract questions.
 2. Tick off completed deliverables in that file's phase checklist.
 3. Commit on your branch with a clear message. Don't push or open PRs unless the user asks.
+   **No AI attribution:** never add `Co-Authored-By: Claude` trailers, "Generated with Claude Code" lines, or
+   any other AI attribution to commits, PRs or issues. Commits are authored only by the developer's own git identity.
 4. Never edit `docs/STATUS.md` from a module branch. It is updated on `main` at phase gates.
 
 ## 7. Where things are
