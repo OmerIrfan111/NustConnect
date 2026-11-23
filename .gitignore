@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+coverage/
+.vite/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# uploads (multer local storage)
+uploads/
+server/uploads/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# office lock files / original coursework docs (kept outside the repo)
+.~lock.*
+*.docx
+*.pdf
+
+# Claude local settings
+.claude/settings.local.json
