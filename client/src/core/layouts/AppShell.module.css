@@ -41,7 +41,7 @@
     position: fixed;
     inset: 0;
     z-index: calc(var(--nc-z-drawer) - 1);
-    background: rgba(15, 23, 42, 0.45);
+    background: var(--nc-scrim);
   }
   .content {
     padding: var(--nc-space-6);

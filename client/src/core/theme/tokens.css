@@ -26,6 +26,9 @@
   --nc-text-on-navy-muted: #94a3b8;
   --nc-sidebar-icon: #7e9bc2;
   --nc-border: #e2e8f0;
+  --nc-on-navy-hover: rgba(255, 255, 255, 0.08); /* hover fill on navy surfaces */
+  --nc-on-navy-scrollbar: rgba(255, 255, 255, 0.2);
+  --nc-scrim: rgba(15, 23, 42, 0.45); /* backdrop behind drawers/modals */
 
   /* Feedback */
   --nc-danger: #dc2626;
@@ -80,6 +83,7 @@
   --nc-content-max: 1280px;
   --nc-page-gutter: 80px;
   --nc-focus-ring: 0 0 0 3px rgba(20, 184, 166, 0.45);
+  --nc-focus-ring-strong: 0 0 0 3px rgba(20, 184, 166, 0.6); /* focus on navy backgrounds */
 
   /* Motion */
   --nc-ease: cubic-bezier(0.2, 0, 0, 1);

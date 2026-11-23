@@ -55,6 +55,24 @@ describe('routing', () => {
     expect(screen.getByRole('navigation', { name: 'Modules' })).toHaveTextContent('Admin');
   });
 
+  // QA gate 0: "With fake auth on, every sidebar item opens its placeholder".
+  const adminUser = { ...DEMO_USER, role: 'admin' };
+  it.each([...registry.nav.main, ...registry.nav.more].map((n) => [n.label, n.path, n.module]))(
+    'sidebar item "%s" (%s) opens the %s placeholder',
+    async (_label, path, module) => {
+      renderAt(path, adminUser);
+      expect(await screen.findByText(`module/${module}`)).toBeInTheDocument();
+      expect(screen.getByRole('navigation', { name: 'Modules' })).toBeInTheDocument();
+    },
+  );
+
+  // QA gate 0: "with it off, protected routes redirect to the placeholder login".
+  it.each(registry.routes.map((r) => [r.path.replace(':id', '1')]))('guest is redirected from %s', async (path) => {
+    const router = renderAt(path);
+    expect(await screen.findByRole('heading', { name: 'Login' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/login');
+  });
+
   it('renders a 404 for unknown paths', async () => {
     renderAt('/definitely-not-a-page');
     expect(await screen.findByText('404')).toBeInTheDocument();

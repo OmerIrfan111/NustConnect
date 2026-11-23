@@ -54,7 +54,7 @@ With fake auth off, protected routes redirect to the `/login` placeholder. In de
 
 ```bash
 cd client && npm install && npm run dev   # http://localhost:5173 (API proxied to :5000)
-npm test                                   # Vitest: registry + routing tests
+npm test                                   # Vitest: registry + routing tests (67)
 ```
 
 ## Handoff notes for the other base tasks
@@ -76,3 +76,4 @@ npm test                                   # Vitest: registry + routing tests
 | Date | Dev | Done | Next / blockers |
 |------|-----|------|-----------------|
 | 2026-11-23 | Musa | Vite + React scaffold, tokens + Inter, module registry + 9 client stubs, auth stub with fake auth, router + guards, VisitorLayout, AppShell (manifest sidebar, top bar slots, profile menu, mobile drawer), landing page (UI-01, 1440/768/375), About/Contact/Privacy/404/403, http client, 15 tests | Swap landing/shell buttons and cards to the `core/ui` kit after Base-3. Wire `npm run setup && npm run dev` once root workspace + server exist. Run the QA gate 0 no-conflict test. |
+| 2026-11-23 | Musa | Moved the last rgba colours into tokens (all colours now come from `tokens.css`). Added QA gate 0 tests: every sidebar item opens its placeholder with fake auth, and every protected route redirects guests to /login. 67 tests green, build clean. Pushed `base/client`. | Base-1 is done. Remaining gate-0 items need Base-2/Base-3: one-command setup, CI, and the three-branch no-conflict merge test. |

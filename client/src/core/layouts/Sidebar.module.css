@@ -17,7 +17,7 @@
   overflow-y: auto;
   padding: 0 var(--nc-space-4) var(--nc-space-6);
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: var(--nc-on-navy-scrollbar) transparent;
 }
 .list {
   list-style: none;
@@ -37,7 +37,7 @@
   transition: background var(--nc-dur-fast) var(--nc-ease), color var(--nc-dur-fast) var(--nc-ease);
 }
 .item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--nc-on-navy-hover);
   color: var(--nc-on-primary);
 }
 .icon {
