@@ -36,12 +36,22 @@ module.exports = {
 
 Base stub: a placeholder page ("Coming soon – owned by module/&lt;slug&gt;") and `GET /api/<slug>/ping → { ok: true, slug }`.
 
+**Client manifest details (as built in the base):**
+
+- Route objects are `{ path, component, title?, roles? }`. `component` is a React component (use `lazy()` for big pages).
+- `publicRoutes[].layout`: `'adaptive'` (default: AppShell when signed in, visitor shell otherwise), `'visitor'` or `'bare'`.
+- `nav[].icon` is a `lucide-react` component. `group: 'main'` items are the 12 designed sidebar items (ordered by `order`:
+  10, 20, …, 120). Everything else goes in `group: 'more'` (`order` 200+).
+- Allowed `slots`: `topbarSearch` and `topbarNotifications` (A2), and `adminLayout` (A3, must render `<Outlet />`).
+- The registry reports slug/folder mismatches, duplicate paths and unknown slots as console warnings, and unit tests fail on them.
+- Full guide: `client/src/core/README.md`.
+
 ## 2. Session / roles (owner: A1)
 
 | Side | Location | Exports |
 |------|----------|---------|
 | Server | `server/src/modules/auth/session.js` | `requireAuth`, `optionalAuth`, `requireRole(role)` (Express middleware; sets `req.user = { id, name, role, verified }`) |
-| Client | `client/src/modules/auth/useAuth.js` | `useAuth() → { user, isAuthenticated, login, logout }`, where `user = { id, name, role, verified, … }` |
+| Client | `client/src/modules/auth/useAuth.js` | `<AuthProvider>` (core wraps the app in it) and `useAuth() → { user, isAuthenticated, login, logout }`, where `user = { id, name, email, role, verified, department, batch }` |
 
 Roles: `student`, `alumni`, `moderator`, `admin`.
 **Stub:** when `VITE_DEV_FAKE_AUTH=true`, the demo user "Ahmed Khan" is logged in. The role is switchable in `.env`.
