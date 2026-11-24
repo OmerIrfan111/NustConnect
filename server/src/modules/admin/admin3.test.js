@@ -14,7 +14,6 @@ jest.mock('./models/Category', () => global.__mk('categories', (r) => ({ id: r._
 const request = require('supertest');
 
 const appAs = (...a) => global.__appAs(...a);
-const db = (n) => global.__adminDb[n] || [];
 beforeEach(() => global.__clearDb());
 
 const report = (over = {}) => {
