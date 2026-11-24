@@ -29,7 +29,7 @@ function createApp({ modulesDir } = {}) {
         limit: config.rateLimit.max,
         standardHeaders: 'draft-7',
         legacyHeaders: false,
-        message: { error: { status: 429, message: 'Too many requests, please try again later' } },
+        message: { status: 429, message: 'Too many requests, please try again later', error: 'Too many requests, please try again later' },
       }),
     );
   }

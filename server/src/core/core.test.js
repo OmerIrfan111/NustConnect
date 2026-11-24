@@ -31,7 +31,8 @@ describe('server core (QA gate 0)', () => {
   test('unknown API route returns a JSON 404', async () => {
     const res = await request(app).get('/api/nope');
     expect(res.status).toBe(404);
-    expect(res.body.error.status).toBe(404);
+    expect(res.body.status).toBe(404);
+    expect(typeof res.body.message).toBe('string');
   });
 
   test('campus locations stub returns 5 points', async () => {
