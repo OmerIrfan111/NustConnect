@@ -8,7 +8,7 @@
  */
 const config = require('../../core/config');
 const { HttpError } = require('../../core/errors');
-const { COOKIE_NAME, verifyToken } = require('./token');
+const { COOKIE_NAME, readToken } = require('./token');
 
 const DEMO_USER = Object.freeze({
   id: 'demo-ahmed-khan',
@@ -21,12 +21,14 @@ const toSessionUser = (u) => ({ id: String(u._id), name: u.name, role: u.role, v
 
 /** Resolves the user for a request: real session first, then the dev fake user, else null. */
 async function resolveUser(req) {
-  const id = verifyToken(req.cookies?.[COOKIE_NAME]);
-  if (id) {
+  const session = readToken(req.cookies?.[COOKIE_NAME]);
+  if (session) {
     // Required lazily so modules that only need session.js don't load Mongoose models at import time.
     const User = require('./models/User');
-    const user = await User.findById(id);
-    if (user && !user.suspended) return toSessionUser(user);
+    const user = await User.findById(session.id);
+    // A password change ends every session that was issued before it.
+    const changedAt = user?.passwordChangedAt ? Math.floor(new Date(user.passwordChangedAt).getTime() / 1000) : 0;
+    if (user && !user.suspended && session.iat >= changedAt) return toSessionUser(user);
   }
   return config.fakeAuth ? { ...DEMO_USER } : null;
 }
@@ -41,8 +43,21 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-/** 401 unless there is a session. */
+/** 401 unless there is a session. Unverified accounts get 403 `{ details: { code: 'unverified' } }`. */
 const requireAuth = async (req, res, next) => {
+  try {
+    const user = await resolveUser(req);
+    if (!user) return next(new HttpError(401, 'Authentication required'));
+    if (!user.verified) return next(new HttpError(403, 'Verify your email to continue', { code: 'unverified' }));
+    req.user = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+/** Like requireAuth but lets unverified accounts through. Only for the auth endpoints that verified-gating would lock out. */
+const requireSession = async (req, res, next) => {
   try {
     const user = await resolveUser(req);
     if (!user) return next(new HttpError(401, 'Authentication required'));
@@ -63,4 +78,4 @@ const requireRole =
       next(new HttpError(403, 'You do not have permission to do this'));
     });
 
-module.exports = { requireAuth, optionalAuth, requireRole, DEMO_USER };
+module.exports = { requireAuth, optionalAuth, requireRole, requireSession, DEMO_USER };

@@ -52,8 +52,8 @@ export default function Register() {
 
     setBusy(true);
     try {
-      await register({ ...form, name: form.name.trim(), email: form.email.trim(), batch: form.batch.trim() });
-      navigate('/dashboard', { replace: true });
+      const account = await register({ ...form, name: form.name.trim(), email: form.email.trim(), batch: form.batch.trim() });
+      navigate(account.verified ? '/dashboard' : '/verify', { replace: true });
     } catch (err) {
       // Per-field messages from the server (for example a non-NUST email or a duplicate account).
       if (err.details && typeof err.details === 'object') setErrors(err.details);

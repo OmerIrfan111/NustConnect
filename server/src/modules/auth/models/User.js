@@ -13,6 +13,14 @@ const userSchema = new mongoose.Schema(
     // Phase 1 marks accounts verified at registration (domain rule only). Phase 2 replaces this with the email-link flow.
     verified: { type: Boolean, default: false },
     suspended: { type: Boolean, default: false }, // set by A3 moderation (Phase 2)
+    avatarUrl: { type: String, default: '', maxlength: 200 },
+    phone: { type: String, default: '', trim: true, maxlength: 20 }, // private: never returned by lookup
+    settings: {
+      profileVisibility: { type: String, enum: ['everyone', 'verified', 'private'], default: 'verified' },
+      contactPreference: { type: String, enum: ['in-app', 'email', 'phone'], default: 'in-app' },
+      emailNotifications: { type: Boolean, default: true },
+    },
+    passwordChangedAt: { type: Date, default: null },
   },
   { timestamps: true, collection: 'auth_users' },
 );
@@ -27,6 +35,13 @@ userSchema.methods.toPublic = function toPublic() {
     verified: this.verified,
     department: this.department,
     batch: this.batch,
+    avatarUrl: this.avatarUrl || '',
+    phone: this.phone || '',
+    settings: {
+      profileVisibility: this.settings?.profileVisibility ?? 'verified',
+      contactPreference: this.settings?.contactPreference ?? 'in-app',
+      emailNotifications: this.settings?.emailNotifications ?? true,
+    },
   };
 };
 

@@ -8,7 +8,7 @@ import styles from '../components/form.module.css';
 
 /** Login (UI-06). */
 export default function Login() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, pendingUser } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = safeNext(params.get('next'));
@@ -19,6 +19,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
 
   if (isAuthenticated && !busy) return <Navigate to={next} replace />;
+  if (pendingUser && !busy) return <Navigate to="/verify" replace />;
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
@@ -34,8 +35,8 @@ export default function Login() {
 
     setBusy(true);
     try {
-      await login(form.email.trim(), form.password, form.remember);
-      navigate(next, { replace: true });
+      const account = await login(form.email.trim(), form.password, form.remember);
+      navigate(account.verified ? next : '/verify', { replace: true });
     } catch (err) {
       setFormError(err.message || 'Could not sign in. Please try again.');
       setBusy(false);

@@ -8,15 +8,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const signToken = (userId, { remember = false } = {}) =>
   jwt.sign({ sub: String(userId) }, config.jwtSecret, { expiresIn: remember ? '30d' : config.jwtExpiresIn });
 
-/** Returns the user id from a token, or null when it is missing, invalid or expired. */
-function verifyToken(token) {
+/** Returns `{ id, iat }` from a token, or null when it is missing, invalid or expired. */
+function readToken(token) {
   if (!token) return null;
   try {
-    return jwt.verify(token, config.jwtSecret).sub || null;
+    const p = jwt.verify(token, config.jwtSecret);
+    return p.sub ? { id: p.sub, iat: p.iat } : null;
   } catch {
     return null;
   }
 }
+
+/** Returns the user id from a token, or null when it is missing, invalid or expired. */
+const verifyToken = (token) => readToken(token)?.id ?? null;
 
 const cookieOptions = () => ({
   httpOnly: true,
@@ -35,4 +39,4 @@ function setSessionCookie(res, userId, { remember = false } = {}) {
 
 const clearSessionCookie = (res) => res.clearCookie(COOKIE_NAME, cookieOptions());
 
-module.exports = { COOKIE_NAME, signToken, verifyToken, setSessionCookie, clearSessionCookie };
+module.exports = { COOKIE_NAME, signToken, verifyToken, readToken, setSessionCookie, clearSessionCookie };

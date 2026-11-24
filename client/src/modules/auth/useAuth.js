@@ -36,7 +36,7 @@ const AuthContext = createContext(null);
  */
 export function AuthProvider({ children, initialUser }) {
   const skipCheck = initialUser !== undefined || FAKE_AUTH;
-  const [user, setUser] = useState(initialUser !== undefined ? initialUser : FAKE_AUTH ? DEMO_USER : null);
+  const [account, setAccount] = useState(initialUser !== undefined ? initialUser : FAKE_AUTH ? DEMO_USER : null);
   const [checking, setChecking] = useState(!skipCheck);
 
   useEffect(() => {
@@ -44,8 +44,8 @@ export function AuthProvider({ children, initialUser }) {
     let active = true;
     http
       .get('/auth/me')
-      .then(({ data }) => active && setUser(data.user))
-      .catch(() => active && setUser(null)) // 401 = guest. A network error also leaves the visitor signed out.
+      .then(({ data }) => active && setAccount(data.user))
+      .catch(() => active && setAccount(null)) // 401 = guest. A network error also leaves the visitor signed out.
       .finally(() => active && setChecking(false));
     return () => {
       active = false;
@@ -54,13 +54,13 @@ export function AuthProvider({ children, initialUser }) {
 
   const login = useCallback(async (email, password, remember = false) => {
     const { data } = await http.post('/auth/login', { email, password, remember });
-    setUser(data.user);
+    setAccount(data.user);
     return data.user;
   }, []);
 
   const register = useCallback(async (form) => {
     const { data } = await http.post('/auth/register', form);
-    setUser(data.user);
+    setAccount(data.user);
     return data.user;
   }, []);
 
@@ -68,13 +68,28 @@ export function AuthProvider({ children, initialUser }) {
     try {
       await http.post('/auth/logout');
     } finally {
-      setUser(null);
+      setAccount(null);
     }
   }, []);
 
+  /** Re-reads the session from the server, for example right after the email link verified the account. */
+  const refresh = useCallback(async () => {
+    try {
+      const { data } = await http.get('/auth/me');
+      setAccount(data.user);
+      return data.user;
+    } catch {
+      setAccount(null);
+      return null;
+    }
+  }, []);
+
+  const user = account && account.verified ? account : null;
+  const pendingUser = account && !account.verified ? account : null;
+
   const value = useMemo(
-    () => ({ user, isAuthenticated: Boolean(user), login, logout, register }),
-    [user, login, logout, register],
+    () => ({ user, isAuthenticated: Boolean(user), pendingUser, login, logout, register, refresh, setUser: setAccount }),
+    [user, pendingUser, login, logout, register, refresh],
   );
 
   return createElement(AuthContext.Provider, { value }, checking ? createElement(PageLoading) : children);

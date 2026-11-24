@@ -64,4 +64,72 @@ function validateLogin(body = {}) {
   return { email, password, remember: body.remember === true };
 }
 
-module.exports = { validateRegister, validateLogin, isAllowedEmail, passwordProblem, DEPARTMENTS };
+function validateForgot(body = {}) {
+  const email = str(body.email).toLowerCase();
+  if (!EMAIL_RE.test(email)) throw fail({ email: 'Invalid email' });
+  return { email };
+}
+
+function validateReset(body = {}) {
+  const errors = {};
+  const pw = passwordProblem(body.password);
+  if (pw) errors.password = pw;
+  if (body.confirmPassword !== undefined && body.confirmPassword !== body.password) {
+    errors.confirmPassword = 'Passwords do not match';
+  }
+  if (typeof body.token !== 'string' || !body.token) errors.token = 'This reset link is not valid';
+  if (Object.keys(errors).length) throw fail(errors);
+  return { token: body.token, password: body.password };
+}
+
+/** Only the fields present are validated and returned. */
+function validateProfile(body = {}) {
+  const out = {};
+  const errors = {};
+  if (body.name !== undefined) {
+    out.name = str(body.name);
+    if (out.name.length < 2 || out.name.length > 80) errors.name = 'Enter your full name';
+  }
+  if (body.department !== undefined) {
+    out.department = str(body.department);
+    if (!DEPARTMENTS.includes(out.department)) errors.department = 'Select your department or school';
+  }
+  if (body.batch !== undefined) {
+    out.batch = str(body.batch);
+    if (!/^\d{4}$/.test(out.batch)) errors.batch = 'Enter your batch year, for example 2023';
+  }
+  if (Object.keys(errors).length) throw fail(errors);
+  return out;
+}
+
+const VISIBILITY = ['everyone', 'verified', 'private'];
+const CONTACT = ['in-app', 'email', 'phone'];
+
+function validateSettings(body = {}) {
+  const out = {};
+  const errors = {};
+  if (body.profileVisibility !== undefined) {
+    if (!VISIBILITY.includes(body.profileVisibility)) errors.profileVisibility = 'Invalid visibility';
+    else out['settings.profileVisibility'] = body.profileVisibility;
+  }
+  if (body.contactPreference !== undefined) {
+    if (!CONTACT.includes(body.contactPreference)) errors.contactPreference = 'Invalid contact preference';
+    else out['settings.contactPreference'] = body.contactPreference;
+  }
+  if (body.emailNotifications !== undefined) {
+    if (typeof body.emailNotifications !== 'boolean') errors.emailNotifications = 'Invalid value';
+    else out['settings.emailNotifications'] = body.emailNotifications;
+  }
+  if (body.phone !== undefined) {
+    const phone = str(body.phone);
+    if (phone && !/^\+?[0-9 -]{7,20}$/.test(phone)) errors.phone = 'Enter a valid phone number';
+    else out.phone = phone;
+  }
+  if (Object.keys(errors).length) throw fail(errors);
+  return out;
+}
+
+module.exports = {
+  validateRegister, validateLogin, validateForgot, validateReset, validateProfile, validateSettings,
+  isAllowedEmail, passwordProblem, DEPARTMENTS,
+};
