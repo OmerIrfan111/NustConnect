@@ -1,0 +1,17 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: var(--nc-fw-bold);
+  font-size: 20px;
+  color: var(--nc-navy);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.onDark {
+  color: var(--nc-on-primary);
+}
+.accent {
+  color: var(--nc-teal);
+  font-weight: var(--nc-fw-regular);
+}

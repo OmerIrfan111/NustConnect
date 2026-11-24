@@ -1,0 +1,73 @@
+.wrap {
+  display: grid;
+  place-items: center;
+  padding: var(--nc-space-12) var(--nc-space-4);
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  text-align: center;
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-md);
+  box-shadow: var(--nc-shadow-card);
+  padding: var(--nc-space-12) var(--nc-space-8);
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--nc-space-5);
+  border-radius: var(--nc-radius-md);
+  display: grid;
+  place-items: center;
+  background: var(--nc-amber-light);
+  color: var(--nc-amber-ink);
+}
+
+.eyebrow {
+  font-size: var(--nc-fs-xs);
+  font-weight: var(--nc-fw-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nc-teal-700);
+  margin-bottom: var(--nc-space-2);
+}
+
+.title {
+  font-size: var(--nc-fs-page);
+  color: var(--nc-navy);
+  margin-bottom: var(--nc-space-3);
+}
+
+.body {
+  color: var(--nc-text-2);
+  font-size: var(--nc-fs-small);
+  margin-bottom: var(--nc-space-6);
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--nc-fs-label);
+  background: var(--nc-navy-light);
+  color: var(--nc-navy);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: var(--nc-radius-sm);
+  background: var(--nc-navy);
+  color: var(--nc-on-primary);
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  transition: filter var(--nc-dur-fast) var(--nc-ease);
+}
+.btn:hover {
+  filter: brightness(1.15);
+}

@@ -1,0 +1,118 @@
+/*
+ * NUSTConnect design tokens — the ONE theme file (docs/DESIGN.md).
+ * Every colour, font size, radius, shadow and breakpoint used in the app comes from here.
+ * Modules and the UI kit must reference these variables; never hard-code hex values or px font sizes.
+ */
+:root {
+  /* Brand */
+  --nc-navy: #173b63;
+  --nc-navy-600: #24507f; /* hero panel, badges on navy */
+  --nc-navy-light: #e3eaf3;
+  --nc-teal: #14b8a6;
+  --nc-teal-700: #0f766e; /* teal text on light backgrounds (AA) */
+  --nc-teal-light: #d9f5f1;
+  --nc-teal-on-navy: #9fe9e0;
+  --nc-amber: #f59e0b;
+  --nc-amber-light: #fef0d3;
+  --nc-amber-ink: #7a4b00;
+
+  /* Neutrals */
+  --nc-bg: #f8fafc;
+  --nc-surface: #ffffff;
+  --nc-on-primary: #ffffff; /* text/icons on navy or teal fills */
+  --nc-text: #1e293b;
+  --nc-text-2: #64748b;
+  --nc-text-on-navy: #cbd5e1;
+  --nc-text-on-navy-muted: #94a3b8;
+  --nc-sidebar-icon: #7e9bc2;
+  --nc-border: #e2e8f0;
+  --nc-on-navy-hover: rgba(255, 255, 255, 0.08); /* hover fill on navy surfaces */
+  --nc-on-navy-scrollbar: rgba(255, 255, 255, 0.2);
+  --nc-scrim: rgba(15, 23, 42, 0.45); /* backdrop behind drawers/modals */
+
+  /* Feedback */
+  --nc-danger: #dc2626;
+  --nc-danger-light: #fee2e2;
+  --nc-success: var(--nc-teal);
+
+  /* Typography — Inter, single family */
+  --nc-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --nc-fs-hero: 40px;    /* main heading, bold */
+  --nc-fs-page: 32px;    /* page heading, bold, navy */
+  --nc-fs-section: 24px; /* section heading, semibold */
+  --nc-fs-card: 18px;    /* card heading, semibold */
+  --nc-fs-body: 16px;
+  --nc-fs-small: 14px;   /* supporting text, buttons */
+  --nc-fs-label: 13px;
+  --nc-fs-xs: 12px;
+  --nc-fw-regular: 400;
+  --nc-fw-medium: 500;
+  --nc-fw-semibold: 600;
+  --nc-fw-bold: 700;
+  --nc-lh-tight: 1.2;
+  --nc-lh-body: 1.55;
+
+  /* Spacing scale (4px base) */
+  --nc-space-1: 4px;
+  --nc-space-2: 8px;
+  --nc-space-3: 12px;
+  --nc-space-4: 16px;
+  --nc-space-5: 20px;
+  --nc-space-6: 24px;
+  --nc-space-8: 32px;
+  --nc-space-10: 40px;
+  --nc-space-12: 48px;
+  --nc-space-14: 56px;
+  --nc-space-16: 64px;
+  --nc-space-20: 80px;
+
+  /* Shape */
+  --nc-radius-sm: 8px;   /* buttons, inputs, nav items */
+  --nc-radius-md: 12px;  /* cards, icon tiles, badges */
+  --nc-radius-lg: 20px;  /* hero panel, pills */
+  --nc-radius-full: 999px;
+
+  /* Elevation */
+  --nc-shadow-card: 0 4px 16px rgba(23, 59, 99, 0.07);
+  --nc-shadow-card-hover: 0 8px 24px rgba(23, 59, 99, 0.15);
+  --nc-shadow-menu: 0 12px 32px rgba(23, 59, 99, 0.18);
+
+  /* Layout */
+  --nc-sidebar-w: 260px;
+  --nc-topbar-h: 66px;
+  --nc-content-max: 1280px;
+  --nc-page-gutter: 80px;
+  --nc-focus-ring: 0 0 0 3px rgba(20, 184, 166, 0.45);
+  --nc-focus-ring-strong: 0 0 0 3px rgba(20, 184, 166, 0.6); /* focus on navy backgrounds */
+
+  /* Motion */
+  --nc-ease: cubic-bezier(0.2, 0, 0, 1);
+  --nc-dur-fast: 120ms;
+  --nc-dur: 200ms;
+
+  /* Layers */
+  --nc-z-sticky: 20;
+  --nc-z-drawer: 40;
+  --nc-z-menu: 50;
+}
+
+/*
+ * Breakpoints (CSS custom properties can't be used inside @media, so they are documented here):
+ *   desktop  ≥ 1024px  (designed at 1440)
+ *   tablet   768–1023px
+ *   mobile   < 768px   (tested at 375)
+ */
+@media (max-width: 1023px) {
+  :root {
+    --nc-page-gutter: 32px;
+    --nc-fs-hero: 34px;
+  }
+}
+@media (max-width: 767px) {
+  :root {
+    --nc-page-gutter: 16px;
+    --nc-fs-hero: 30px;
+    --nc-fs-page: 26px;
+    --nc-fs-section: 22px;
+  }
+}

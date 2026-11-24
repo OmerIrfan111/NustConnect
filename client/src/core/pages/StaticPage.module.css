@@ -1,0 +1,119 @@
+.page {
+  padding: var(--nc-space-14) var(--nc-page-gutter) var(--nc-space-16);
+}
+.inner {
+  max-width: 820px;
+}
+.eyebrow {
+  display: inline-block;
+  font-size: var(--nc-fs-xs);
+  font-weight: var(--nc-fw-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nc-teal-700);
+  margin-bottom: var(--nc-space-3);
+}
+.title {
+  font-size: var(--nc-fs-page);
+  color: var(--nc-navy);
+  margin-bottom: var(--nc-space-4);
+}
+.lead {
+  font-size: 18px;
+  color: var(--nc-text-2);
+  margin-bottom: var(--nc-space-10);
+}
+.section + .section {
+  margin-top: var(--nc-space-8);
+}
+.section h2 {
+  font-size: 20px;
+  margin-bottom: var(--nc-space-3);
+}
+.section p,
+.section li {
+  color: var(--nc-text-2);
+}
+.section ul {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--nc-space-2);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--nc-space-5);
+}
+.card {
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-md);
+  box-shadow: var(--nc-shadow-card);
+  padding: var(--nc-space-5);
+}
+.card h3 {
+  margin: var(--nc-space-3) 0 var(--nc-space-1);
+}
+.card p {
+  color: var(--nc-text-2);
+  font-size: var(--nc-fs-small);
+}
+.tile {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--nc-radius-md);
+  display: grid;
+  place-items: center;
+  background: var(--nc-teal-light);
+  color: var(--nc-teal-700);
+}
+.note {
+  margin-top: var(--nc-space-10);
+  padding: var(--nc-space-3) var(--nc-space-4);
+  border-radius: 10px;
+  background: var(--nc-amber-light);
+  border: 1px dashed var(--nc-amber);
+  color: var(--nc-amber-ink);
+  font-size: var(--nc-fs-label);
+}
+.center {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--nc-space-12) var(--nc-space-4);
+}
+.code {
+  font-size: 72px;
+  font-weight: var(--nc-fw-bold);
+  line-height: 1;
+  color: var(--nc-teal);
+  margin-bottom: var(--nc-space-3);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--nc-space-3);
+  margin-top: var(--nc-space-6);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: var(--nc-radius-sm);
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  border: 1.5px solid var(--nc-navy);
+  background: var(--nc-navy);
+  color: var(--nc-on-primary);
+}
+.btn:hover {
+  filter: brightness(1.15);
+}
+.btnOutline {
+  background: var(--nc-surface);
+  color: var(--nc-navy);
+}
