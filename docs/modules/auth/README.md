@@ -94,7 +94,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 | Date | Gate | Tester | Result | Issues |
 |------|------|--------|--------|--------|
-| | 2026-11-24 | Omer + Claude | Phase 1 built: server (User model, register/login/logout/me, real lookup, JWT httpOnly cookie, real `session.js` keeping the fake-auth fallback, validation, domain rule) with 10 API tests; client (real `useAuth` with session restore on refresh, AuthLayout, Login, Register, `safeNext` open-redirect guard) with 11 tests. Needed a core fix on `base/server` so API errors match the client http interceptor. | Run QA-1 on a real MongoDB and at 1440/768/375. Core-change issue for routes.test.jsx. Then Phase 2. |
+| | | | | |
 
 ## Session log
 
@@ -102,4 +102,4 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 | Date | Dev | Done | Next / blockers |
 |------|-----|------|-----------------|
-| | | | |
+| 2026-11-24 | Omer + Claude | Phase 1 built: server (User model, register/login/logout/me, real lookup, JWT httpOnly cookie, real `session.js` keeping the fake-auth fallback, validation, domain rule) with 10 API tests; client (real `useAuth` with session restore on refresh, AuthLayout, Login, Register, `safeNext` open-redirect guard) with 11 tests. Needed a core fix on `base/server` so API errors match the client http interceptor. | Run QA-1 on a real MongoDB and at 1440/768/375. Core-change issue for routes.test.jsx. Then Phase 2. |
