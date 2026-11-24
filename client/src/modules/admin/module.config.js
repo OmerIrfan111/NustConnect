@@ -7,6 +7,9 @@ const Reports = lazy(() => import('./pages/Reports.jsx'));
 const Users = lazy(() => import('./pages/Users.jsx'));
 const CampaignsAdmin = lazy(() => import('./pages/CampaignsAdmin.jsx'));
 const CampaignForm = lazy(() => import('./pages/CampaignForm.jsx'));
+const CampaignManage = lazy(() => import('./pages/CampaignManage.jsx'));
+const Categories = lazy(() => import('./pages/Categories.jsx'));
+const AuditLog = lazy(() => import('./pages/AuditLog.jsx'));
 const Donations = lazy(() => import('./pages/Donations.jsx'));
 const DonationDetail = lazy(() => import('./pages/DonationDetail.jsx'));
 
@@ -27,7 +30,10 @@ export default {
     { label: 'Overview', path: '/admin', component: Overview, title: 'Admin' },
     { label: 'Moderation', path: '/admin/reports', component: Reports, title: 'Moderation queue' },
     { label: 'Users', path: '/admin/users', component: Users, title: 'Users' },
+    { label: 'Categories', path: '/admin/categories', component: Categories, title: 'Categories', roles: ['admin'] },
     { label: 'Donations', path: '/admin/donations', component: CampaignsAdmin, title: 'Campaigns', roles: ['admin'] },
+    { label: 'Audit log', path: '/admin/audit', component: AuditLog, title: 'Audit log', roles: ['admin'] },
+    { path: '/admin/donations/:id', component: CampaignManage, title: 'Manage campaign', roles: ['admin'] },
     { path: '/admin/donations/new', component: CampaignForm, title: 'New campaign', roles: ['admin'] },
     { path: '/admin/donations/:id/edit', component: CampaignForm, title: 'Edit campaign', roles: ['admin'] },
   ],

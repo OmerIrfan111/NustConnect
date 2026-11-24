@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import http from '@core/api/http.js';
+import { useAuth } from '../../auth/useAuth.js';
 import styles from '../components/ui.module.css';
 
 /**
- * User lookup (read-only). Uses the user-lookup contract, GET /api/auth/users/lookup?q=, so it can only ever see
- * id, name and verified. Email and phone are never exposed here. Warn / suspend arrive in Phase 2.
+ * User lookup. Uses the user-lookup contract, GET /api/auth/users/lookup?q=, so it only ever sees id, name and
+ * verified: email and phone are never exposed here. Moderators can warn; admins can also suspend and unsuspend.
  */
 export default function Users() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [q, setQ] = useState('');
   const [users, setUsers] = useState(null);
   const [state, setState] = useState('idle'); // idle | loading | error
   const [error, setError] = useState('');
+  const [openId, setOpenId] = useState(null);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState({ kind: '', text: '' });
 
   async function search(e) {
     e.preventDefault();
@@ -31,11 +38,29 @@ export default function Users() {
     }
   }
 
+  async function act(u, action) {
+    if (action !== 'unsuspend' && reason.trim().length < 3) {
+      setMessage({ kind: 'error', text: 'Give a short reason (at least 3 characters).' });
+      return;
+    }
+    setBusy(true);
+    setMessage({ kind: '', text: '' });
+    try {
+      await http.post(`/admin/users/${u.id}/${action}`, { reason: reason.trim() });
+      setMessage({ kind: 'ok', text: `${u.name}: ${action} done. Recorded in the audit log.` });
+      setOpenId(null);
+      setReason('');
+    } catch (err) {
+      setMessage({ kind: 'error', text: err?.message || 'The action failed.' });
+    }
+    setBusy(false);
+  }
+
   return (
     <div className={styles.page}>
       <div>
         <h1 className={styles.title}>Users</h1>
-        <p className={styles.lead}>Look up students by name. Read-only.</p>
+        <p className={styles.lead}>Look up students by name. Only name and verified status are shown.</p>
       </div>
 
       <form onSubmit={search} className={styles.head} role="search">
@@ -55,6 +80,11 @@ export default function Users() {
           {error}
         </p>
       )}
+      {message.text && (
+        <p role={message.kind === 'error' ? 'alert' : 'status'} className={message.kind === 'error' ? styles.alert : styles.okNote}>
+          {message.text}
+        </p>
+      )}
       {users && users.length === 0 && <p className={styles.note}>No users found.</p>}
       {users && users.length > 0 && (
         <div className={styles.tableWrap}>
@@ -64,6 +94,9 @@ export default function Users() {
                 <th>Name</th>
                 <th>Verified</th>
                 <th>ID</th>
+                <th>
+                  <span className="nc-sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +107,34 @@ export default function Users() {
                     <span className={`${styles.badge} ${u.verified ? styles.badgeTeal : ''}`}>{u.verified ? 'Verified' : 'Unverified'}</span>
                   </td>
                   <td>{u.id}</td>
+                  <td>
+                    <button type="button" className={styles.link} style={{ background: 'none', border: 0, cursor: 'pointer' }} aria-expanded={openId === u.id} onClick={() => { setOpenId(openId === u.id ? null : u.id); setReason(''); setMessage({ kind: '', text: '' }); }}>
+                      {openId === u.id ? 'Close' : 'Moderate'}
+                    </button>
+                    {openId === u.id && (
+                      <div className={styles.field} style={{ marginTop: 'var(--nc-space-3)', minWidth: 260, whiteSpace: 'normal' }}>
+                        <label htmlFor={`reason-${u.id}`} className={styles.label}>
+                          Reason
+                        </label>
+                        <input id={`reason-${u.id}`} className={styles.input} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />
+                        <div className={styles.head} style={{ justifyContent: 'flex-start' }}>
+                          <button type="button" className={styles.btn} disabled={busy} onClick={() => act(u, 'warn')}>
+                            Warn
+                          </button>
+                          {isAdmin && (
+                            <>
+                              <button type="button" className={`${styles.btn} ${styles.btnDanger}`} disabled={busy} onClick={() => act(u, 'suspend')}>
+                                Suspend
+                              </button>
+                              <button type="button" className={`${styles.btn} ${styles.btnOutline}`} disabled={busy} onClick={() => act(u, 'unsuspend')}>
+                                Unsuspend
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -22,7 +22,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 ## Current state
 
 **Phase:** 1 (Core) built, awaiting live-DB QA and a visual check at 1440/768/375. Branch cut from local `base/server` + `origin/base/client` (no `v0.1-base` tag yet); re-merge `main` once it exists.  
-**Next step:** QA-1, then Phase 2 (moderation actions via `moderationHooks`, audit log, categories, contributions).
+**Phase 2 (Depth) is built.** **Next step:** QA-1 and QA-2 against a real MongoDB with the real content modules, then Phase 3 (analytics from summaryProviders, pagination/search/filters, permission matrix).
 
 ## Phase 1 — Core
 
@@ -43,15 +43,15 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 **Deliverables**
 
-- [ ] Hide / restore via `moderationHooks`; warn / suspend via auth; audit log for every action
-- [ ] Category management (modules fall back to defaults if empty)
-- [ ] Donation contribution records (pledges, no gateway) + campaign updates feed
+- [x] Hide / restore via `moderationHooks`; warn / suspend via auth; audit log for every action
+- [x] Category management (modules fall back to defaults if empty)
+- [x] Donation contribution records (pledges, no gateway) + campaign updates feed
 
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
-- [ ] Hide removes content for students, not moderators; restore reverses
-- [ ] Audit entry with actor + time for each action
-- [ ] Contribution totals = sum of records
+- [x] Hide removes content for students, not moderators; restore reverses
+- [x] Audit entry with actor + time for each action
+- [x] Contribution totals = sum of records
 
 ## Phase 3 — Integration & hardening
 
@@ -71,12 +71,25 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | /api/admin/reports | session | Contract �6. `{ targetType, targetId, reason?, details? }` -> 202 `{ accepted, id }`. Same reporter + target while open returns the existing report (`duplicate: true`) |
+| POST | /api/admin/reports | session | Contract §6. `{ targetType, targetId, reason?, details? }` -> 202 `{ accepted, id }`. Same reporter + target while open returns the existing report (`duplicate: true`) |
 | GET | /api/admin/reports?status=open\|resolved\|dismissed\|all&page&limit | moderator, admin | Moderation queue, newest first |
 | GET | /api/admin/campaigns | session | Students: active + closed. Admins: also drafts |
 | GET | /api/admin/campaigns/:id | session | Drafts are 404 for non-admins |
 | POST | /api/admin/campaigns | admin | Create (title, description, goalAmount, raisedAmount, status, deadline) |
 | PUT | /api/admin/campaigns/:id | admin | Partial update |
+| POST | /api/admin/reports/:id/hide | moderator, admin | Calls the owning module's `moderationHooks.hide(targetId)`; report becomes resolved/hidden. 409 if no module can hide it or it is already hidden; 502 if the hook fails (nothing recorded) |
+| POST | /api/admin/reports/:id/restore | moderator, admin | Reverses a hide through `moderationHooks.restore`. 409 unless the content is hidden |
+| POST | /api/admin/reports/:id/dismiss | moderator, admin | Closes an open report with no change to the content |
+| POST | /api/admin/users/:id/warn | moderator, admin | `{ reason }` (required). Through the auth module's `userModeration.warn` |
+| POST | /api/admin/users/:id/suspend | admin | `{ reason }` (required). `userModeration.suspend`. Cannot target yourself |
+| POST | /api/admin/users/:id/unsuspend | admin | `userModeration.unsuspend` |
+| GET | /api/admin/categories?scope= | session | Active categories (admins get all). Empty list means the module uses its own defaults |
+| POST/PUT/DELETE | /api/admin/categories[/:id] | admin | Manage categories (scope + name unique) |
+| GET | /api/admin/campaigns/:id/contributions | admin | Pledge records and their total (donor names visible here only) |
+| POST | /api/admin/campaigns/:id/contributions | admin | `{ amount, donorName?, anonymous?, note? }`. Campaign total is recomputed as the sum of records |
+| DELETE | /api/admin/campaigns/:id/contributions/:contributionId | admin | Removes a record, total recomputed |
+| POST | /api/admin/campaigns/:id/updates | admin | `{ text }` appends to the updates feed (students read it on the campaign) |
+| GET | /api/admin/audit?action=&page=&limit= | admin | Newest first. No endpoint edits or deletes entries |
 
 ## Models
 
@@ -86,14 +99,34 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 Seed: `npm run seed -- admin` loads 3 campaigns flagged `sample` (0 %, 50 %, 100 %).
 
-`admin_audit`, `admin_categories` and `admin_contributions` are Phase 2.
+**`admin_audit`** (`models/AuditEntry.js`): `actorId, actorName, actorRole, action, targetType, targetId, reportId, note, createdAt`. Append-only.
+
+**`admin_categories`**: `scope, name, order, active` (unique on scope + name).
+
+**`admin_contributions`**: `campaignId, donorName, anonymous, amount, note, recordedBy, sample`.
+
+Reports also carry `action (none|hidden|restored), note, handledBy, handledAt`. Campaigns carry an `updates` feed.
+
+### Contract for content modules (how hide / restore finds you)
+
+A report names its content by `targetType` (for example `ride`). Admin resolves the module without importing it, from the loader's registry, in this order:
+
+1. a module whose `moderationHooks.targetTypes` array contains the type (preferred: add `targetTypes: ['ride', 'trip']` next to your hooks),
+2. a module whose slug equals the type,
+3. the built-in alias table in `moderation.js` (ride/trip/meetup -> rideshare, item/listing/skillpost -> marketplace, review/entity/opportunity -> reviews, lostitem/founditem/claim -> lostfound, faq/complaint -> support, location/bill -> campus).
+
+The module's `hide(id)` / `restore(id)` must make the item invisible to students (lists, search, direct URL) but still visible to moderators.
+
+### Contract for the auth module
+
+Account actions use `registry.get('auth').userModeration = { warn(userId, note), suspend(userId, note), unsuspend(userId, note) }` (each returns false when the user does not exist). Until the auth module exports it, warn / suspend answer 409 "not available yet".
 
 ## Known issues
 
-- Core test `client/src/core/router/routes.test.jsx` has 3 cases that look for the placeholder text ("lets admins into admin routes and shows the Admin nav item", sidebar items "Donations" and "Admin"). They fail now that the pages are real. Needs a `core-change`.
-- The moderation queue is read-only until Phase 2 (hide / restore / warn / audit).
+- If the audit entry cannot be written after a hook already ran, the request fails (500) while the content stays hidden. Rare, and the report stays open so a moderator can retry.
 - The user list is a name search through the lookup contract (id, name, verified), not a full listing, because the contract never returns more.
 - Role checks use the session contract. With the base stub, the role comes from `VITE_DEV_FAKE_ROLE`.
+- Phase 1 let an admin type the raised amount; it is now always the sum of pledge records. Existing campaign rows should be re-seeded or given pledges.
 - API tests use mocked models, not yet run against a real MongoDB.
 
 ## QA log
@@ -109,3 +142,4 @@ Seed: `npm run seed -- admin` loads 3 campaigns flagged `sample` (0 %, 50 %, 100
 | Date | Dev | Done | Next / blockers |
 |------|-----|------|-----------------|
 | 2026-11-24 | Omer + Claude | Phase 1 built: Report + Campaign models, report intake (202, de-duplicated), moderation queue API, campaign CRUD with role checks (drafts hidden from students), seed, admin layout slot with a tab bar built from every module's `adminRoutes`, Overview, Moderation, Users (lookup contract), campaign admin list + form, student Donations list + detail with progress bar. 12 API + 18 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for 3 placeholder tests. Then Phase 2. |
+| 2026-11-24 | Omer + Claude | Phase 2 built: hide / restore / dismiss through module hooks (resolved from the registry, no imports), warn / suspend / unsuspend through the auth `userModeration` contract, append-only audit log + page, categories (API + page), pledge records with totals always = sum, campaign updates feed, campaign manage screen, role-gated tabs. 17 new API tests, 14 new UI tests. | QA-2 with the real content modules' hooks. Phase 3: analytics, pagination/search, permission matrix. |

@@ -172,6 +172,7 @@ describe('donations', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save campaign' }));
     await waitFor(() => expect(http.post).toHaveBeenCalled());
     expect(http.post.mock.calls[0][0]).toBe('/admin/campaigns');
-    expect(http.post.mock.calls[0][1]).toMatchObject({ title: 'Flood relief', goalAmount: 1000, raisedAmount: 0, status: 'active' });
+    expect(http.post.mock.calls[0][1]).toMatchObject({ title: 'Flood relief', goalAmount: 1000, status: 'active' });
+    expect(http.post.mock.calls[0][1]).not.toHaveProperty('raisedAmount');
   });
 });

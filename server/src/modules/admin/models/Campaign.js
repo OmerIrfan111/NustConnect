@@ -8,11 +8,12 @@ const campaignSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 120 },
     description: { type: String, default: '', trim: true, maxlength: 2000 },
     goalAmount: { type: Number, required: true, min: 1 }, // PKR
-    // Phase 1: set by the admin. Phase 2 derives it from the sum of admin_contributions.
+    // Always the sum of this campaign's admin_contributions (recomputed on every change), never typed in by hand.
     raisedAmount: { type: Number, default: 0, min: 0 },
     deadline: { type: Date, default: null },
     status: { type: String, enum: STATUSES, default: 'active', index: true },
     createdBy: { type: String, default: '' },
+    updates: [{ text: { type: String, maxlength: 500 }, at: { type: Date, default: Date.now }, _id: false }],
     sample: { type: Boolean, default: false }, // seeded demo rows, shown as sample data
   },
   { timestamps: true, collection: 'admin_campaigns' },
@@ -27,6 +28,7 @@ campaignSchema.methods.toPublic = function toPublic() {
     raisedAmount: this.raisedAmount,
     progress: progressPercent(this.raisedAmount, this.goalAmount),
     deadline: this.deadline,
+    updates: [...(this.updates || [])].sort((a, b) => new Date(b.at) - new Date(a.at)).map((u) => ({ text: u.text, at: u.at })),
     status: this.status,
     sample: this.sample,
     createdAt: this.createdAt,

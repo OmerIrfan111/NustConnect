@@ -45,6 +45,9 @@ export default function CampaignsAdmin() {
               </p>
               <ProgressBar raised={c.raisedAmount} goal={c.goalAmount} label={`${c.title} progress`} />
               <p style={{ margin: 'var(--nc-space-4) 0 0' }}>
+                <Link to={`/admin/donations/${c.id}`} className={styles.link}>
+                  Pledges &amp; updates
+                </Link>{' · '}
                 <Link to={`/admin/donations/${c.id}/edit`} className={styles.link}>
                   Edit
                 </Link>

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import http from '@core/api/http.js';
 import styles from '../components/ui.module.css';
 
-const EMPTY = { title: '', description: '', goalAmount: '', raisedAmount: '0', status: 'active', deadline: '' };
+const EMPTY = { title: '', description: '', goalAmount: '', status: 'active', deadline: '' };
 
 function Field({ id, label, error, children }) {
   return (
@@ -41,7 +41,6 @@ export default function CampaignForm() {
           title: c.title,
           description: c.description || '',
           goalAmount: String(c.goalAmount),
-          raisedAmount: String(c.raisedAmount),
           status: c.status,
           deadline: c.deadline ? c.deadline.slice(0, 10) : '',
         });
@@ -58,7 +57,6 @@ export default function CampaignForm() {
     const found = {};
     if (form.title.trim().length < 3) found.title = 'Title must be at least 3 characters';
     if (!(Number(form.goalAmount) >= 1)) found.goalAmount = 'Goal must be a positive amount';
-    if (form.raisedAmount === '' || Number(form.raisedAmount) < 0) found.raisedAmount = 'Raised amount cannot be negative';
     setErrors(found);
     setFormError('');
     if (Object.keys(found).length) return;
@@ -68,7 +66,6 @@ export default function CampaignForm() {
       title: form.title.trim(),
       description: form.description.trim(),
       goalAmount: Number(form.goalAmount),
-      raisedAmount: Number(form.raisedAmount),
       status: form.status,
       deadline: form.deadline || null,
     };
@@ -102,9 +99,6 @@ export default function CampaignForm() {
         </Field>
         <Field id="c-goal" label="Goal (PKR)" error={errors.goalAmount}>
           <input id="c-goal" type="number" min="1" className={cls('goalAmount')} value={form.goalAmount} onChange={set('goalAmount')} />
-        </Field>
-        <Field id="c-raised" label="Raised so far (PKR)" error={errors.raisedAmount}>
-          <input id="c-raised" type="number" min="0" className={cls('raisedAmount')} value={form.raisedAmount} onChange={set('raisedAmount')} />
         </Field>
         <Field id="c-status" label="Status" error={errors.status}>
           <select id="c-status" className={cls('status')} value={form.status} onChange={set('status')}>

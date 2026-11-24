@@ -36,10 +36,6 @@ function validateCampaign(body = {}, { partial = false } = {}) {
     out.goalAmount = Number(body.goalAmount);
     if (!Number.isFinite(out.goalAmount) || out.goalAmount < 1) errors.goalAmount = 'Goal must be a positive amount';
   }
-  if (has('raisedAmount')) {
-    out.raisedAmount = Number(body.raisedAmount);
-    if (!Number.isFinite(out.raisedAmount) || out.raisedAmount < 0) errors.raisedAmount = 'Raised amount cannot be negative';
-  }
   if (has('status')) {
     if (!CAMPAIGN_STATUSES.includes(body.status)) errors.status = 'Invalid status';
     else out.status = body.status;

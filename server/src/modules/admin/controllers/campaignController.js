@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Campaign = require('../models/Campaign');
 const { HttpError } = require('../../../core/errors');
 const { validateCampaign } = require('../validation');
+const audit = require('../audit');
 
 const isAdmin = (user) => user.role === 'admin';
 
@@ -24,6 +25,7 @@ async function get(req, res) {
 async function create(req, res) {
   const data = validateCampaign(req.body);
   const c = await Campaign.create({ ...data, createdBy: req.user.id });
+  await audit.record(req.user, 'campaign.create', { targetType: 'campaign', targetId: c._id, note: c.title });
   res.status(201).json({ campaign: c.toPublic() });
 }
 
@@ -32,6 +34,7 @@ async function update(req, res) {
   if (!mongoose.isValidObjectId(req.params.id)) throw new HttpError(404, 'Campaign not found');
   const c = await Campaign.findByIdAndUpdate(req.params.id, data, { returnDocument: 'after', runValidators: true });
   if (!c) throw new HttpError(404, 'Campaign not found');
+  await audit.record(req.user, 'campaign.update', { targetType: 'campaign', targetId: c._id, note: c.title });
   res.json({ campaign: c.toPublic() });
 }
 

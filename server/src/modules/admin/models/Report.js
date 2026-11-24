@@ -11,6 +11,10 @@ const reportSchema = new mongoose.Schema(
     details: { type: String, default: '', trim: true, maxlength: 500 },
     reporterId: { type: String, required: true, index: true },
     status: { type: String, enum: STATUSES, default: 'open', index: true },
+    action: { type: String, enum: ['none', 'hidden', 'restored'], default: 'none' },
+    note: { type: String, default: '', maxlength: 500 },
+    handledBy: { type: String, default: '' },
+    handledAt: { type: Date, default: null },
   },
   { timestamps: true, collection: 'admin_reports' },
 );
@@ -26,6 +30,9 @@ reportSchema.methods.toPublic = function toPublic() {
     details: this.details,
     reporterId: this.reporterId,
     status: this.status,
+    action: this.action || 'none',
+    note: this.note || '',
+    handledAt: this.handledAt,
     createdAt: this.createdAt,
   };
 };

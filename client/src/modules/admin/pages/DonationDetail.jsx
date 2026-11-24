@@ -47,6 +47,24 @@ export default function DonationDetail() {
           {c.progress}% funded{c.deadline ? ` · Ends ${shortDate(c.deadline)}` : ''}
         </p>
       </div>
+
+      <section aria-labelledby="updates" style={{ maxWidth: 720 }}>
+        <h2 id="updates" className={styles.cardTitle}>
+          Updates
+        </h2>
+        {c.updates?.length ? (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 'var(--nc-space-3)' }}>
+            {c.updates.map((u, i) => (
+              <li key={`${u.at}-${i}`} className={styles.card}>
+                <p style={{ margin: 0 }}>{u.text}</p>
+                <p className={styles.muted} style={{ margin: 'var(--nc-space-1) 0 0' }}>{shortDate(u.at)}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.note}>No updates yet.</p>
+        )}
+      </section>
     </div>
   );
 }
