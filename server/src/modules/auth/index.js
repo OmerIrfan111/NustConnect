@@ -1,21 +1,16 @@
-/** auth (A1) server manifest: BASE STUB. Owner replaces this; keep `slug` and `router`. See docs/CONTRACTS.md §1, §7. */
+/** auth (A1) server manifest. Mounted at /api/auth. See docs/modules/auth/README.md for the endpoint list. */
 const express = require('express');
 const { requireAuth } = require('./session');
+const ctrl = require('./controllers/authController');
 
 const router = express.Router();
 
+// Express 5 forwards rejected promises to the error handler, so handlers can be plain async functions.
 router.get('/ping', (req, res) => res.json({ ok: true, slug: 'auth' }));
-
-// User lookup contract (§7). Stub: 3 sample users. NEVER return email or phone.
-const SAMPLE_USERS = [
-  { id: 'sample-user-1', name: 'Ayesha Malik', verified: true },
-  { id: 'sample-user-2', name: 'Bilal Raza', verified: true },
-  { id: 'sample-user-3', name: 'Hamza Sheikh', verified: false },
-];
-
-router.get('/users/lookup', requireAuth, (req, res) => {
-  const q = String(req.query.q || '').trim().toLowerCase();
-  res.json(SAMPLE_USERS.filter((u) => !q || u.name.toLowerCase().includes(q)));
-});
+router.post('/register', ctrl.register);
+router.post('/login', ctrl.login);
+router.post('/logout', ctrl.logout);
+router.get('/me', requireAuth, ctrl.me);
+router.get('/users/lookup', requireAuth, ctrl.lookup);
 
 module.exports = { slug: 'auth', router };
