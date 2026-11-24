@@ -1,0 +1,56 @@
+.avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--nc-radius-full);
+  object-fit: cover;
+  font-weight: var(--nc-fw-bold);
+}
+.initials {
+  background: var(--nc-navy);
+  color: var(--nc-on-primary);
+}
+.sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--nc-fs-xs);
+}
+.md {
+  width: 40px;
+  height: 40px;
+  font-size: var(--nc-fs-small);
+}
+.lg {
+  width: 72px;
+  height: 72px;
+  font-size: var(--nc-fs-section);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nc-space-3);
+}
+.text {
+  display: grid;
+  line-height: 1.3;
+}
+.name {
+  font-size: var(--nc-fs-small);
+  color: var(--nc-text);
+}
+.meta {
+  font-size: var(--nc-fs-xs);
+  color: var(--nc-text-2);
+}
+.dot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--nc-radius-full);
+  background: var(--nc-amber);
+  color: var(--nc-amber-ink);
+  font-size: 11px;
+  font-weight: var(--nc-fw-bold);
+}

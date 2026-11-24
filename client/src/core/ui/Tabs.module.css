@@ -1,0 +1,71 @@
+.tabs {
+  display: flex;
+  gap: var(--nc-space-1);
+  border-bottom: 1px solid var(--nc-border);
+  overflow-x: auto;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nc-space-2);
+  padding: var(--nc-space-3) var(--nc-space-4);
+  font: inherit;
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-text-2);
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--nc-navy);
+}
+.tab:focus-visible {
+  outline: none;
+  box-shadow: var(--nc-focus-ring);
+  border-radius: var(--nc-radius-sm);
+}
+.active {
+  color: var(--nc-navy);
+  border-bottom-color: var(--nc-teal);
+}
+.count {
+  border-radius: var(--nc-radius-full);
+  background: var(--nc-navy-light);
+  color: var(--nc-navy);
+  padding: 0 var(--nc-space-2);
+  font-size: var(--nc-fs-xs);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nc-space-2);
+}
+.chip {
+  font: inherit;
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-text-2);
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-full);
+  padding: var(--nc-space-2) var(--nc-space-4);
+  min-height: 36px;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--nc-teal);
+}
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--nc-focus-ring);
+}
+.chipOn {
+  background: var(--nc-navy);
+  border-color: var(--nc-navy);
+  color: var(--nc-on-primary);
+}
