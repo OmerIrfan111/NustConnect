@@ -7,7 +7,7 @@ Frozen after `v0.1-base`. Changes go through a `core-change` issue.
 | `config.js` | Reads the repo-root `.env` once. Modules import settings from here. |
 | `app.js` | `createApp()`: helmet, CORS (credentials), JSON, cookies, rate limit, `/uploads`, `/api/health`, module loader, 404 + error handler. No DB or `listen()`, so tests can use it. |
 | `loader.js` | Globs `modules/*/index.js`, checks `slug === folder` and a `router`, mounts at `/api/<slug>`. Bad manifests are skipped with a warning (`app.locals.loaderWarnings`). `app.locals.modules` is the slug → manifest registry, used by A2 (search/summary) and A3 (moderation hooks) via `providersOf()`. |
-| `errors.js` | `HttpError(status, message, details)`, `notFound`, `errorHandler`. Every error is `{ error: { status, message, details? } }`. |
+| `errors.js` | `HttpError(status, message, details)`, `notFound`, `errorHandler`. Every error is `{ status, message, error, details? }` (matches `client/src/core/api/http.js`). |
 | `db.js` | `connectDb()`, `disconnectDb()`, `dbState()`. |
 | `seed.js` | `npm run seed -- <slug>` or `-- all`. Runs `modules/<slug>/seed.js` (an exported async function). |
 | `index.js` | Entry point. In development the server still starts when MongoDB is down (`/api/health` shows `db: "disconnected"`). In production it exits. |

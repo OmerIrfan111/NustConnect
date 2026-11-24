@@ -1,4 +1,4 @@
-/** HttpError + central Express error handling. Every API error is `{ error: { status, message, details? } }`. */
+/** HttpError + central Express error handling. Every API error is `{ status, message, error, details? }` (`error` repeats `message` as a string). */
 class HttpError extends Error {
   constructor(status, message, details) {
     super(message);
@@ -37,7 +37,8 @@ const errorHandler = (err, req, res, next) => {
     if (process.env.NODE_ENV !== 'test') console.error(err);
     if (process.env.NODE_ENV === 'production') message = 'Internal server error';
   }
-  res.status(status).json({ error: { status, message, ...(details ? { details } : {}) } });
+  // `message` + `error` (string) at the top level is what client/src/core/api/http.js reads.
+  res.status(status).json({ status, message, error: message, ...(details ? { details } : {}) });
 };
 
 module.exports = { HttpError, notFound, errorHandler };
