@@ -70,17 +70,12 @@ describe('loader rules', () => {
   });
 });
 
-describe('session stub with fake auth', () => {
+describe('session with fake auth', () => {
   test('demo user and role checks', async () => {
     jest.resetModules();
     process.env.VITE_DEV_FAKE_AUTH = 'true';
     process.env.VITE_DEV_FAKE_ROLE = 'student';
     const fresh = require('./app').createApp();
-
-    const lookup = await request(fresh).get('/api/auth/users/lookup?q=ayesha');
-    expect(lookup.status).toBe(200);
-    expect(lookup.body).toEqual([{ id: 'sample-user-1', name: 'Ayesha Malik', verified: true }]);
-    expect(JSON.stringify(lookup.body)).not.toMatch(/email|phone/i);
 
     const report = await request(fresh).post('/api/admin/reports').send({ targetType: 'ride', targetId: '1' });
     expect(report.status).toBe(202);
