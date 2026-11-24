@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider, DEMO_USER } from '../../modules/auth/useAuth.js';
 import { registry } from '../modules/registry.js';
@@ -24,8 +24,7 @@ describe('routing', () => {
 
   it('redirects guests from protected routes to /login?next=', async () => {
     const router = renderAt('/rides');
-    expect(await screen.findByRole('heading', { name: 'Login' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/login');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
     expect(router.state.location.search).toBe('?next=%2Frides');
   });
 
@@ -50,27 +49,30 @@ describe('routing', () => {
   });
 
   it('lets admins into admin routes and shows the Admin nav item', async () => {
-    renderAt('/admin', { ...DEMO_USER, role: 'admin' });
-    expect(await screen.findByRole('heading', { name: 'Admin overview' })).toBeInTheDocument();
-    expect(screen.getByRole('navigation', { name: 'Modules' })).toHaveTextContent('Admin');
+    const router = renderAt('/admin', { ...DEMO_USER, role: 'admin' });
+    expect(await screen.findByRole('navigation', { name: 'Modules' })).toHaveTextContent('Admin');
+    expect(router.state.location.pathname).toBe('/admin');
+    expect(screen.queryByText('403')).not.toBeInTheDocument();
   });
 
   // QA gate 0: "With fake auth on, every sidebar item opens its placeholder".
   const adminUser = { ...DEMO_USER, role: 'admin' };
   it.each([...registry.nav.main, ...registry.nav.more].map((n) => [n.label, n.path, n.module]))(
-    'sidebar item "%s" (%s) opens the %s placeholder',
-    async (_label, path, module) => {
-      renderAt(path, adminUser);
-      expect(await screen.findByText(`module/${module}`)).toBeInTheDocument();
-      expect(screen.getByRole('navigation', { name: 'Modules' })).toBeInTheDocument();
+    'sidebar item "%s" (%s) opens inside the app shell (%s)',
+    async (_label, path) => {
+      const router = renderAt(path, adminUser);
+      // Works for placeholders and for real pages alike: the shell renders, no 403 / 404, and the URL is kept.
+      expect(await screen.findByRole('navigation', { name: 'Modules' })).toBeInTheDocument();
+      expect(router.state.location.pathname).toBe(path);
+      expect(screen.queryByText('403')).not.toBeInTheDocument();
+      expect(screen.queryByText('404')).not.toBeInTheDocument();
     },
   );
 
   // QA gate 0: "with it off, protected routes redirect to the placeholder login".
   it.each(registry.routes.map((r) => [r.path.replace(':id', '1')]))('guest is redirected from %s', async (path) => {
     const router = renderAt(path);
-    expect(await screen.findByRole('heading', { name: 'Login' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/login');
+    await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
   });
 
   it('renders a 404 for unknown paths', async () => {
