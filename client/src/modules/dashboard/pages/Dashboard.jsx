@@ -1,14 +1,45 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import http from '@core/api/http.js';
 import { useAuth } from '../../auth/useAuth.js';
 import { QUICK_ACCESS, SAMPLE_ACTIVITY, SAMPLE_OPPORTUNITIES, SAMPLE_STATS } from '../sampleData.js';
+import { timeAgo } from '../timeAgo.js';
 import styles from './Dashboard.module.css';
 
 const SampleTag = () => <span className={styles.sample}>Sample data</span>;
+const norm = (s) => String(s).trim().toLowerCase();
 
-/** Student Dashboard (WF-02). Phase 1 uses sample data, clearly labelled. */
+/**
+ * Merges the live stats from each module's summaryProvider into the 4 designed stat cards.
+ * A card without a live value falls back to its sample number and is labelled as sample data.
+ */
+export function mergeStats(live = []) {
+  const byLabel = new Map(live.map((s) => [norm(s.label), s]));
+  return SAMPLE_STATS.map((s) => {
+    const hit = byLabel.get(norm(s.label));
+    return hit ? { ...s, value: hit.value, sample: false } : { ...s, sample: true };
+  });
+}
+
+/** Student Dashboard (WF-02). Live where a module provides a summary, labelled sample data everywhere else. */
 export default function Dashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
+  const [summary, setSummary] = useState(null); // null until loaded, or when it fails
+
+  useEffect(() => {
+    let active = true;
+    http
+      .get('/dashboard/summary')
+      .then(({ data }) => active && setSummary(data))
+      .catch(() => {}); // keep the sample widgets: the dashboard never shows an error wall for optional data
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const stats = mergeStats(summary?.stats);
+  const liveRecent = summary?.recent?.length > 0;
 
   return (
     <div className={styles.page}>
@@ -18,11 +49,11 @@ export default function Dashboard() {
       </header>
 
       <section aria-label="Your numbers" className={styles.stats}>
-        {SAMPLE_STATS.map((s) => (
+        {stats.map((s) => (
           <Link key={s.label} to={s.to} className={`${styles.card} ${styles.stat}`}>
             <span className={styles.statLabel}>{s.label}</span>
             <span className={styles.statValue}>{s.value}</span>
-            <SampleTag />
+            {s.sample && <SampleTag />}
           </Link>
         ))}
       </section>
@@ -50,18 +81,28 @@ export default function Dashboard() {
             <h2 id="recent" className={styles.cardTitle}>
               Recent activity
             </h2>
-            <SampleTag />
+            {!liveRecent && <SampleTag />}
           </div>
           <ul className={styles.list}>
-            {SAMPLE_ACTIVITY.map((a) => (
-              <li key={a.id}>
-                <Link to={a.to} className={styles.activity}>
-                  <span className={styles.dot} aria-hidden="true" />
-                  <span className={styles.activityText}>{a.text}</span>
-                  <span className={styles.when}>{a.at}</span>
-                </Link>
-              </li>
-            ))}
+            {liveRecent
+              ? summary.recent.map((a, i) => (
+                  <li key={`${a.module}-${i}`}>
+                    <Link to={a.url || `/${a.module}`} className={styles.activity}>
+                      <span className={styles.dot} aria-hidden="true" />
+                      <span className={styles.activityText}>{a.text}</span>
+                      <span className={styles.when}>{a.at ? timeAgo(a.at) : ''}</span>
+                    </Link>
+                  </li>
+                ))
+              : SAMPLE_ACTIVITY.map((a) => (
+                  <li key={a.id}>
+                    <Link to={a.to} className={styles.activity}>
+                      <span className={styles.dot} aria-hidden="true" />
+                      <span className={styles.activityText}>{a.text}</span>
+                      <span className={styles.when}>{a.at}</span>
+                    </Link>
+                  </li>
+                ))}
           </ul>
         </section>
 

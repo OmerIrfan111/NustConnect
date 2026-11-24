@@ -1,6 +1,5 @@
 import { lazy } from 'react';
 import { LayoutDashboard, Bell } from 'lucide-react';
-import { placeholder } from '@core/pages/Placeholder.jsx';
 import GlobalSearchBar from './components/GlobalSearchBar.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
 
@@ -14,7 +13,7 @@ export default {
   routes: [
     { path: '/dashboard', component: lazy(() => import('./pages/Dashboard.jsx')), title: 'Dashboard' },
     { path: '/notifications', component: lazy(() => import('./pages/Notifications.jsx')), title: 'Notifications' },
-    { path: '/search', component: placeholder('dashboard', 'Search results'), title: 'Search' }, // Phase 2
+    { path: '/search', component: lazy(() => import('./pages/Search.jsx')), title: 'Search' },
   ],
   publicRoutes: [],
   adminRoutes: [],

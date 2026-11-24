@@ -22,7 +22,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 ## Current state
 
 **Phase:** 1 (Core) built, awaiting live-DB QA and visual check at 1440/768/375. Branch cut from local `base/server` + `origin/base/client` (no `v0.1-base` tag yet); re-merge `main` once it exists.  
-**Next step:** QA-1, then Phase 2 (search aggregation, summary providers). The Notifications page already has the all/unread filter and deep links.
+**Phase 2 (Depth) is built.** **Next step:** QA-1 and QA-2 against a real MongoDB with real modules, then Phase 3 (polling bell, email digest, reviews providers, accessibility, Lighthouse).
 
 ## Phase 1 — Core
 
@@ -44,14 +44,14 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 **Deliverables**
 
 - [x] Notifications page with all/unread filter and deep links
-- [ ] Global search aggregating every `searchProvider`, grouped by module, type filter
-- [ ] Stats + Recent activity from each `summaryProvider` (fallback to sample)
+- [x] Global search aggregating every `searchProvider`, grouped by module, type filter
+- [x] Stats + Recent activity from each `summaryProvider` (fallback to sample)
 
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
-- [ ] Search skips modules without a provider (no crash)
-- [ ] Search < 2 s with seeded data
-- [ ] Unread count correct after mark-read
+- [x] Search skips modules without a provider (no crash)
+- [x] Search < 2 s with seeded data
+- [x] Unread count correct after mark-read
 
 ## Phase 3 — Integration & hardening
 
@@ -76,7 +76,11 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 | POST | /api/dashboard/notifications/read-all | session | Marks all own as read |
 | POST | /api/dashboard/notifications/:id/read | session | 404 for someone else's id |
 
+Aggregation lives in `aggregate.js`. A module with no provider, a provider that throws, or one slower than the timeout is skipped (listed in `skipped`), so one broken module never breaks search or the dashboard.
+
 `notify(userId, { type, title, body, link })` (`server/src/modules/dashboard/notify.js`): never throws, drops non-`/` links.
+| GET | /api/dashboard/search?q=&type=&limit= | verified | Aggregates every module's `searchProvider` in parallel. `{ q, groups: [{ module, results }], types, total, skipped }`. q needs 2+ chars. 1.5 s per-provider timeout. Result URLs must be same-site paths |
+| GET | /api/dashboard/summary | verified | Aggregates every module's `summaryProvider(userId)`: `{ stats, recent (newest first, max 8), skipped }` |
 
 ## Models
 
@@ -84,8 +88,8 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 ## Known issues
 
-- Core test `client/src/core/router/routes.test.jsx` has 2 cases ("sidebar item Dashboard / Notifications opens the dashboard placeholder") that look for the placeholder text, so they fail now that the pages are real. Needs a `core-change`.
-- Dashboard stats, activity and opportunities are sample data (labelled) until Phase 2 summary providers.
+- The core route tests now render the real dashboard and bell, which call the API; with no server running jsdom prints harmless network errors. Cosmetic (a shared `client/src/test/setup.js` stub would silence it, a core-change).
+- Stats and recent activity are live once modules export `summaryProvider`; until then they are labelled sample data. Recommended opportunities stay sample until the reviews provider (Phase 3).
 - Bell loads on mount and on open; polling is Phase 3.
 - API tests use a mocked model, not yet run against a real MongoDB.
 
@@ -102,3 +106,4 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 | Date | Dev | Done | Next / blockers |
 |------|-----|------|-----------------|
 | 2026-11-24 | Omer + Claude | Phase 1 built: Notification model, list / unread-count / mark-read / read-all API, real `notify()`, Dashboard page (WF-02, sample data labelled), NotificationBell and GlobalSearchBar top-bar slots, Notifications page with filter + pagination. 7 API + 8 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for the 2 placeholder tests. Then Phase 2 (`/search` page, aggregators). |
+| 2026-11-24 | Omer + Claude | Phase 2 built: search aggregator (parallel, isolated, timeout, URL sanitising, type filter), summary aggregator, `/search` page with grouped results, type chips and retry, Dashboard stats + recent activity driven by summaries with labelled sample fallback. 12 API + 9 UI tests. | QA-2 with real providers once the other modules land. Phase 3. |
