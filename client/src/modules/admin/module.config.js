@@ -1,5 +1,14 @@
+import { lazy } from 'react';
 import { HeartHandshake, Shield } from 'lucide-react';
-import { placeholder } from '@core/pages/Placeholder.jsx';
+import AdminLayout from './components/AdminLayout.jsx';
+
+const Overview = lazy(() => import('./pages/Overview.jsx'));
+const Reports = lazy(() => import('./pages/Reports.jsx'));
+const Users = lazy(() => import('./pages/Users.jsx'));
+const CampaignsAdmin = lazy(() => import('./pages/CampaignsAdmin.jsx'));
+const CampaignForm = lazy(() => import('./pages/CampaignForm.jsx'));
+const Donations = lazy(() => import('./pages/Donations.jsx'));
+const DonationDetail = lazy(() => import('./pages/DonationDetail.jsx'));
 
 export default {
   slug: 'admin',
@@ -9,12 +18,18 @@ export default {
     { label: 'Admin', path: '/admin', icon: Shield, group: 'more', order: 290, roles: ['admin', 'moderator'] },
   ],
   routes: [
-    { path: '/donations', component: placeholder('admin', 'Donation campaigns'), title: 'Donations' },
-    { path: '/donations/:id', component: placeholder('admin', 'Campaign details'), title: 'Campaign' },
+    { path: '/donations', component: Donations, title: 'Donations' },
+    { path: '/donations/:id', component: DonationDetail, title: 'Campaign' },
   ],
   publicRoutes: [],
-  adminRoutes: [{ label: 'Overview', path: '/admin', component: placeholder('admin', 'Admin overview') }],
-  // A3 provides the admin layout that lists every module's adminRoutes:
-  // slots: { adminLayout: AdminLayout },
-  slots: {},
+  // Routes with a `label` appear in the admin tab bar. Core wraps all of them in a moderator/admin role guard.
+  adminRoutes: [
+    { label: 'Overview', path: '/admin', component: Overview, title: 'Admin' },
+    { label: 'Moderation', path: '/admin/reports', component: Reports, title: 'Moderation queue' },
+    { label: 'Users', path: '/admin/users', component: Users, title: 'Users' },
+    { label: 'Donations', path: '/admin/donations', component: CampaignsAdmin, title: 'Campaigns', roles: ['admin'] },
+    { path: '/admin/donations/new', component: CampaignForm, title: 'New campaign', roles: ['admin'] },
+    { path: '/admin/donations/:id/edit', component: CampaignForm, title: 'Edit campaign', roles: ['admin'] },
+  ],
+  slots: { adminLayout: AdminLayout },
 };
