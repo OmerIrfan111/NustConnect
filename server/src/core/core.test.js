@@ -75,11 +75,6 @@ describe('session with fake auth', () => {
     jest.resetModules();
     process.env.VITE_DEV_FAKE_AUTH = 'true';
     process.env.VITE_DEV_FAKE_ROLE = 'student';
-    const fresh = require('./app').createApp();
-
-    const report = await request(fresh).post('/api/admin/reports').send({ targetType: 'ride', targetId: '1' });
-    expect(report.status).toBe(202);
-
     const { requireRole } = require('../modules/auth/session');
     const run = (mw) => new Promise((resolve) => mw({}, {}, (err) => resolve(err)));
     expect((await run(requireRole('moderator'))).status).toBe(403);

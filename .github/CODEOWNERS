@@ -1,0 +1,46 @@
+# Code owners (docs/PROJECT_PLAN.md section 2.3). GitHub requests a review from the owner of every file a PR touches.
+#
+# Only logins that exist on GitHub may appear here, otherwise GitHub reports the file as invalid.
+# Omer is filled in. TODO (Musa, Ali): replace the commented placeholders below with your GitHub logins and uncomment the lines.
+
+# ---- Group A: Omer
+/client/src/modules/auth/        @OmerIrfan111
+/server/src/modules/auth/        @OmerIrfan111
+/docs/modules/auth/              @OmerIrfan111
+/client/src/modules/dashboard/   @OmerIrfan111
+/server/src/modules/dashboard/   @OmerIrfan111
+/docs/modules/dashboard/         @OmerIrfan111
+/client/src/modules/admin/       @OmerIrfan111
+/server/src/modules/admin/       @OmerIrfan111
+/docs/modules/admin/             @OmerIrfan111
+/server/src/core/                @OmerIrfan111
+
+# ---- Group B: Musa (TODO: set MUSA_LOGIN)
+# /client/src/modules/rideshare/      @MUSA_LOGIN
+# /server/src/modules/rideshare/      @MUSA_LOGIN
+# /docs/modules/rideshare/            @MUSA_LOGIN
+# /client/src/modules/marketplace/    @MUSA_LOGIN
+# /server/src/modules/marketplace/    @MUSA_LOGIN
+# /docs/modules/marketplace/          @MUSA_LOGIN
+# /client/src/modules/reviews/        @MUSA_LOGIN
+# /server/src/modules/reviews/        @MUSA_LOGIN
+# /docs/modules/reviews/              @MUSA_LOGIN
+# /client/src/core/                   @MUSA_LOGIN
+
+# ---- Group C: Ali (TODO: set ALI_LOGIN)
+# /client/src/modules/lostfound/      @ALI_LOGIN
+# /server/src/modules/lostfound/      @ALI_LOGIN
+# /docs/modules/lostfound/            @ALI_LOGIN
+# /client/src/modules/support/        @ALI_LOGIN
+# /server/src/modules/support/        @ALI_LOGIN
+# /docs/modules/support/              @ALI_LOGIN
+# /client/src/modules/campus/         @ALI_LOGIN
+# /server/src/modules/campus/         @ALI_LOGIN
+# /docs/modules/campus/               @ALI_LOGIN
+# /client/src/core/ui/                @ALI_LOGIN
+# /.github/                           @ALI_LOGIN
+
+# ---- Frozen core files: any change needs a `core-change` issue and an agreed person. Everyone reviews.
+/CLAUDE.md                       @OmerIrfan111
+/CONTRIBUTING.md                 @OmerIrfan111
+/docs/*.md                       @OmerIrfan111
