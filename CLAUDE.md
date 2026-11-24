@@ -54,6 +54,14 @@ branches. Following the rules below is what keeps the merges conflict-free.
 - Every list and form needs loading, empty and error states. Every page must work at 1440, 768 and 375 px.
 - Label sample or demo data as sample data in the UI.
 - Merge commits, not rebase, on shared branches.
+- **Use the core HTTP client** (`@core/api/http.js`) for every API call. Auth uses a CSRF double-submit cookie: axios echoes
+  `XSRF-TOKEN` as `X-XSRF-TOKEN` on same-origin requests, and `requireAuth` / `requireRole` refuse a state-changing request
+  without it. Raw `fetch` calls would be rejected. Errors from the API are `{ status, message, error, details? }`.
+- **Tests must not need a database or other modules.** Mock your own Mongoose models in memory, and never assert on text that
+  another module owns (placeholders, the notification bell's `role="status"` region, top-bar labels). Build per-role apps with
+  `jest.resetModules()` + env, and allow generous timeouts for tests that load several modules (bcrypt, full app shell).
+- **Docs and scripts on Windows:** write Markdown as UTF-8 (`encoding='utf-8'` in any script that edits docs), or `§`, `—`
+  and `…` get corrupted. Prefer the Write/Edit tools over long shell heredocs.
 
 ## 4. Ownership table
 
@@ -93,7 +101,29 @@ See `docs/PROJECT_PLAN.md` §3 for the full scope and QA gate 0.
    any other AI attribution to commits, PRs or issues. Commits are authored only by the developer's own git identity.
 4. Never edit `docs/STATUS.md` from a module branch. It is updated on `main` at phase gates.
 
-## 7. Where things are
+## 7. Server-side registry contracts (as built)
+
+Modules still never import each other. The server loader keeps every manifest in `app.locals.modules` (slug to manifest), and a
+module may read optional members from another module's manifest through it. All are optional: always handle "missing", "throws"
+and "slow" (1.5 s) by skipping that module. Full details live in the owning module's `docs/modules/<slug>/README.md` until they are
+folded into `docs/CONTRACTS.md` through a `core-change`.
+
+| Manifest member | Owner | Called by | Meaning |
+|-----------------|-------|-----------|---------|
+| `searchProvider(q, { limit })` | every module | dashboard `/api/dashboard/search` | `[{ id, title, snippet, type, url }]`, same-site `url`. Reviews returns opportunities with `type: 'opportunity'` for the dashboard widget |
+| `summaryProvider(userId)` | every module | dashboard `/api/dashboard/summary` | `{ stat: { label, value }, recent: [...] }`. Labels match the dashboard cards ("Active Rides", "Marketplace Listings", "Saved Reviews", "Upcoming Events") |
+| `summaryProvider(null, { scope: 'all' })` | every module | admin analytics | Platform-wide figure, no user. Only `stat` is used, `recent` is dropped |
+| `moderationHooks.hide(id)` / `restore(id)` and optional `targetTypes: [...]` | content modules | admin moderation | Hidden content is invisible to students (lists, search, direct URL) and visible to moderators |
+| `userModeration = { warn, suspend, unsuspend }` | auth | admin | `(userId, note) => true / false` |
+| `contactForNotifications(userIds)` | auth | dashboard email digest | In-process only, returns verified users who allow email. No HTTP route may ever return an email |
+| `deleteUserData(userId)` | any module storing personal data | auth "delete my data" | Delete or anonymise that user's data |
+| `notify(userId, { type, title, body, link, important })` | dashboard | any module | `important: true` also goes into the daily email digest |
+| `adminRoutes[]` with `label` | any module | admin layout | Shown as an admin tab. Use `roles` to restrict (the admin layout is already limited to moderators and admins) |
+
+Until `v0.1-base` is tagged, module branches may be cut from a local merge of `base/server` and `origin/base/client`; re-merge `main`
+once the tag exists.
+
+## 8. Where things are
 
 | Need | File |
 |------|------|
