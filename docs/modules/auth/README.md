@@ -95,6 +95,8 @@ User also has `avatarUrl, phone (private), settings { profileVisibility, contact
 
 Email: `mailer.js` uses SMTP when `SMTP_HOST` is set (Ethereal works). Without it, mail is printed to the server console so the link can be copied in development.
 
+Contract for admin (A3): the manifest exports `userModeration = { warn, suspend, unsuspend }` (`userModeration.js`), each `(userId, note) => true | false`. `warn` appends to the user's `warnings`; `suspend` sets `suspended` so the account is signed out on its next request and cannot log in; `unsuspend` reverses it. Admin reads it from the loader registry, it never imports this module.
+
 Sessions: `requireAuth` rejects unverified accounts with 403 `details.code = 'unverified'`; `requireSession` (used by `/me` and resend) lets them through. On the client, only verified accounts count as signed in (`useAuth().pendingUser` holds the unverified one).
 
 ## Known issues
@@ -119,3 +121,4 @@ Sessions: `requireAuth` rejects unverified accounts with 403 `details.code = 'un
 |------|-----|------|-----------------|
 | 2026-11-24 | Omer + Claude | Phase 1 built: server (User model, register/login/logout/me, real lookup, JWT httpOnly cookie, real `session.js` keeping the fake-auth fallback, validation, domain rule) with 10 API tests; client (real `useAuth` with session restore on refresh, AuthLayout, Login, Register, `safeNext` open-redirect guard) with 11 tests. Needed a core fix on `base/server` so API errors match the client http interceptor. | Run QA-1 on a real MongoDB and at 1440/768/375. Core-change issue for routes.test.jsx. Then Phase 2. |
 | 2026-11-24 | Omer + Claude | Phase 2 built: email verification (hashed single-use tokens, nodemailer or dev console), forgot/reset password with session invalidation, verified gating on protected endpoints and on the client (`pendingUser`), profile + avatar upload, settings (privacy, contact preference, phone), `/verify`, `/forgot-password`, `/profile`, `/settings` pages. 18 new API tests, 15 new UI tests. | QA-1/QA-2 on a real MongoDB with SMTP. Phase 3. |
+| 2026-11-24 | Omer + Claude | Added the `userModeration` contract (warn / suspend / unsuspend) that A3's moderation uses, with 4 tests. | Phase 3. |

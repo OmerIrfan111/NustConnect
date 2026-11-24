@@ -3,6 +3,7 @@ const express = require('express');
 const { requireAuth, requireSession } = require('./session');
 const ctrl = require('./controllers/authController');
 const profile = require('./controllers/profileController');
+const userModeration = require('./userModeration');
 
 const router = express.Router();
 
@@ -26,4 +27,5 @@ router.patch('/profile', requireAuth, profile.updateProfile);
 router.patch('/settings', requireAuth, profile.updateSettings);
 router.post('/profile/avatar', requireAuth, profile.uploadAvatar);
 
-module.exports = { slug: 'auth', router };
+// `userModeration` is the contract the admin module uses for warn / suspend / unsuspend (see docs/modules/admin/README.md).
+module.exports = { slug: 'auth', router, userModeration };

@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     // Phase 1 marks accounts verified at registration (domain rule only). Phase 2 replaces this with the email-link flow.
     verified: { type: Boolean, default: false },
     suspended: { type: Boolean, default: false }, // set by A3 moderation (Phase 2)
+    warnings: [{ reason: { type: String, maxlength: 500 }, at: { type: Date, default: Date.now }, _id: false }],
     avatarUrl: { type: String, default: '', maxlength: 200 },
     phone: { type: String, default: '', trim: true, maxlength: 20 }, // private: never returned by lookup
     settings: {
