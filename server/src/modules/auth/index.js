@@ -7,6 +7,7 @@ const profile = require('./controllers/profileController');
 const alumni = require('./controllers/alumniController');
 const account = require('./controllers/accountController');
 const userModeration = require('./userModeration');
+const { contactForNotifications } = require('./contacts');
 
 const router = express.Router();
 const limiter = makeLimiter(); // per IP, on the endpoints an attacker would hammer
@@ -39,4 +40,5 @@ router.post('/alumni-requests/:id/approve', requireRole('admin'), alumni.approve
 router.post('/alumni-requests/:id/reject', requireRole('admin'), alumni.reject);
 
 // `userModeration` is the contract the admin module uses for warn / suspend / unsuspend (see docs/modules/admin/README.md).
-module.exports = { slug: 'auth', router, userModeration };
+// `contactForNotifications` is in-process only (email digest); no HTTP route exposes addresses.
+module.exports = { slug: 'auth', router, userModeration, contactForNotifications };
