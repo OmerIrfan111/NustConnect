@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { configure, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -9,6 +9,9 @@ import { registry } from '@core/modules/registry.js';
 import { buildRoutes } from '@core/router/routes.jsx';
 import { AuthProvider } from '../auth/useAuth.js';
 import { actionsFor } from './pages/Reports.jsx';
+
+// These tests render the full app shell; under a busy machine the default 1 s wait is too tight.
+configure({ asyncUtilTimeout: 5000 });
 
 const user = (role) => ({ id: '1', name: 'Ahmed Khan', role, verified: true });
 

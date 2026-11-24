@@ -22,7 +22,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 ## Current state
 
 **Phase:** 1 (Core) built, awaiting live-DB QA and a visual check at 1440/768/375. Branch cut from local `base/server` + `origin/base/client` (no `v0.1-base` tag yet); re-merge `main` once it exists.  
-**Phase 2 (Depth) is built.** **Next step:** QA-1 and QA-2 against a real MongoDB with the real content modules, then Phase 3 (analytics from summaryProviders, pagination/search/filters, permission matrix).
+**Phases 1, 2 and 3 are built.** **Next step:** QA-1/2/3 against a real MongoDB with the real content modules merged (their hide/restore hooks, summary providers and the support module's complaint screen), then the cross-test by Ali.
 
 ## Phase 1 — Core
 
@@ -57,15 +57,15 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 **Deliverables**
 
-- [ ] Analytics page from `summaryProvider`s (no personal data)
-- [ ] Complaint management reachable via support module's `adminRoutes`
-- [ ] Pagination, search, filters on queue and users; tests
+- [x] Analytics page from `summaryProvider`s (no personal data)
+- [x] Complaint management reachable via support module's `adminRoutes`
+- [x] Pagination, search, filters on queue and users; tests
 
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
-- [ ] Moderator vs admin permission matrix verified
+- [x] Moderator vs admin permission matrix verified
 - [ ] Analytics shows data from all modules on main
-- [ ] No admin screen leaks anonymous help-box data
+- [x] No admin screen leaks anonymous help-box data
 
 ## API endpoints
 
@@ -90,6 +90,8 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 | DELETE | /api/admin/campaigns/:id/contributions/:contributionId | admin | Removes a record, total recomputed |
 | POST | /api/admin/campaigns/:id/updates | admin | `{ text }` appends to the updates feed (students read it on the campaign) |
 | GET | /api/admin/audit?action=&page=&limit= | admin | Newest first. No endpoint edits or deletes entries |
+| GET | /api/admin/reports?...&reason=&type=&q= | moderator, admin | Search (`q` over content type, id and details; regex characters are escaped), `reason`, `type` and `status` filters, pagination. The reporter's identity is never returned |
+| GET | /api/admin/analytics | admin | `{ modules: [{ module, label, value }], skipped, moduleCount, platform: { reportsOpen, reportsResolved, reportsDismissed, campaigns, campaignsActive, pledgedTotal, auditEntries } }`. Counts only |
 
 ## Models
 
@@ -106,6 +108,14 @@ Seed: `npm run seed -- admin` loads 3 campaigns flagged `sample` (0 %, 50 %, 100
 **`admin_contributions`**: `campaignId, donorName, anonymous, amount, note, recordedBy, sample`.
 
 Reports also carry `action (none|hidden|restored), note, handledBy, handledAt`. Campaigns carry an `updates` feed.
+
+### Analytics and privacy (Phase 3)
+
+- **Analytics** call each module's `summaryProvider(null, { scope: 'all' })`: no user, so a module answers with its platform-wide figure (for example all active rides). Only `stat.label` and `stat.value` are kept; `recent` (which may describe individual activity) is always dropped. Failing, slow (1.5 s) or missing providers are skipped and listed. Modules that return a per-user figure for `null` simply contribute nothing useful: please return the global count.
+- **Complaint management** is not implemented here. The support module (C2) adds it through its own `adminRoutes` (for example `{ label: 'Complaints', path: '/admin/complaints', roles: ['admin','moderator'] }`) and the admin tab bar shows it automatically.
+- **Help box:** no admin endpoint or screen reads help-box content or authors. A report about help-box content carries only `targetType` and `targetId`.
+- **Reporter identity** (`reporterId`) is kept only for de-duplication and is stripped from every response, so moderators cannot see who reported.
+- **Permission matrix** (tested for every route, for student, alumni, moderator, admin and anonymous): moderators read the queue, hide / restore / dismiss and warn. Admins additionally suspend / unsuspend, write categories and campaigns, record pledges and updates, and read the audit log and analytics.
 
 ### Contract for content modules (how hide / restore finds you)
 
@@ -143,3 +153,4 @@ Account actions use `registry.get('auth').userModeration = { warn(userId, note),
 |------|-----|------|-----------------|
 | 2026-11-24 | Omer + Claude | Phase 1 built: Report + Campaign models, report intake (202, de-duplicated), moderation queue API, campaign CRUD with role checks (drafts hidden from students), seed, admin layout slot with a tab bar built from every module's `adminRoutes`, Overview, Moderation, Users (lookup contract), campaign admin list + form, student Donations list + detail with progress bar. 12 API + 18 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for 3 placeholder tests. Then Phase 2. |
 | 2026-11-24 | Omer + Claude | Phase 2 built: hide / restore / dismiss through module hooks (resolved from the registry, no imports), warn / suspend / unsuspend through the auth `userModeration` contract, append-only audit log + page, categories (API + page), pledge records with totals always = sum, campaign updates feed, campaign manage screen, role-gated tabs. 17 new API tests, 14 new UI tests. | QA-2 with the real content modules' hooks. Phase 3: analytics, pagination/search, permission matrix. |
+| 2026-11-24 | Omer + Claude | Phase 3 built: queue search / reason / type filters (regex-safe) with pagination, reporter identity stripped from all responses, analytics endpoint + page (aggregate stats only, provider isolation and timeout), verified filter on Users, full permission matrix (20 routes x 4 roles + anonymous) and privacy tests against the real models, shared `testkit.js`. 19 new API tests, 9 new UI tests. | QA-3 with all modules merged; Ali's cross-test; support module adds its complaint `adminRoutes`. |

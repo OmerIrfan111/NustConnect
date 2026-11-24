@@ -12,12 +12,15 @@ export default function Users() {
   const isAdmin = user?.role === 'admin';
   const [q, setQ] = useState('');
   const [users, setUsers] = useState(null);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [state, setState] = useState('idle'); // idle | loading | error
   const [error, setError] = useState('');
   const [openId, setOpenId] = useState(null);
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState({ kind: '', text: '' });
+
+  const shown = (users || []).filter((u) => !verifiedOnly || u.verified);
 
   async function search(e) {
     e.preventDefault();
@@ -85,8 +88,13 @@ export default function Users() {
           {message.text}
         </p>
       )}
-      {users && users.length === 0 && <p className={styles.note}>No users found.</p>}
       {users && users.length > 0 && (
+        <label className={styles.muted}>
+          <input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} /> Verified only
+        </label>
+      )}
+      {users && shown.length === 0 && <p className={styles.note}>{users.length > 0 ? 'No verified users in these results.' : 'No users found.'}</p>}
+      {users && shown.length > 0 && (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -100,7 +108,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {shown.map((u) => (
                 <tr key={u.id}>
                   <td>{u.name}</td>
                   <td>

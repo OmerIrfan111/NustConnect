@@ -28,7 +28,6 @@ reportSchema.methods.toPublic = function toPublic() {
     targetId: this.targetId,
     reason: this.reason,
     details: this.details,
-    reporterId: this.reporterId,
     status: this.status,
     action: this.action || 'none',
     note: this.note || '',

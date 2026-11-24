@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { configure, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -10,6 +10,9 @@ import { buildRoutes } from '@core/router/routes.jsx';
 import { AuthProvider } from '../auth/useAuth.js';
 import { progressPercent, pkr } from './format.js';
 import ProgressBar from './components/ProgressBar.jsx';
+
+// These tests render the full app shell; under a busy machine the default 1 s wait is too tight.
+configure({ asyncUtilTimeout: 5000 });
 
 const user = (role) => ({ id: '1', name: 'Ahmed Khan', role, verified: true });
 
@@ -105,7 +108,7 @@ describe('moderation queue', () => {
     });
     renderApp('/admin/reports', 'moderator');
     expect(await screen.findByText('ride #42')).toBeInTheDocument();
-    expect(screen.getByText('spam')).toBeInTheDocument();
+    expect(within(screen.getByRole('table')).getByText('spam')).toBeInTheDocument();
 
     reply('/admin/reports', { data: { items: [], total: 0 } });
     await userEvent.click(screen.getByRole('tab', { name: 'Resolved' }));

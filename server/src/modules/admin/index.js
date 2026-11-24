@@ -7,6 +7,7 @@ const campaigns = require('./controllers/campaignController');
 const contributions = require('./controllers/contributionController');
 const categories = require('./controllers/categoryController');
 const auditLog = require('./controllers/auditController');
+const analyticsCtrl = require('./controllers/analyticsController');
 
 const router = express.Router();
 
@@ -41,5 +42,6 @@ router.delete('/campaigns/:id/contributions/:contributionId', requireRole('admin
 router.post('/campaigns/:id/updates', requireRole('admin'), contributions.addUpdate);
 
 router.get('/audit', requireRole('admin'), auditLog.list);
+router.get('/analytics', requireRole('admin'), analyticsCtrl.analytics);
 
 module.exports = { slug: 'admin', router };

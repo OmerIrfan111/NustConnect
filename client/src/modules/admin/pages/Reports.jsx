@@ -11,6 +11,8 @@ const FILTERS = [
   ['all', 'All'],
 ];
 const PAGE = 20;
+const REASONS = ['spam', 'abuse', 'inappropriate', 'misleading', 'other'];
+const TYPES = ['ride', 'trip', 'item', 'skillpost', 'review', 'opportunity', 'lostitem', 'faq', 'complaint', 'bill'];
 
 /** The actions that make sense for a report in its current state. */
 export function actionsFor(r) {
@@ -25,7 +27,13 @@ const LABEL = { hide: 'Hide content', restore: 'Restore content', dismiss: 'Dism
 export default function Reports() {
   const [status, setStatus] = useState('open');
   const [page, setPage] = useState(1);
-  const params = useMemo(() => ({ status, page, limit: PAGE }), [status, page]);
+  // `draft` is what is typed; `applied` is what the list uses (changed on Search, so typing does not fire a request per key).
+  const [draft, setDraft] = useState({ q: '', reason: '', type: '' });
+  const [applied, setApplied] = useState({ q: '', reason: '', type: '' });
+  const params = useMemo(
+    () => ({ status, page, limit: PAGE, ...(applied.q ? { q: applied.q } : {}), ...(applied.reason ? { reason: applied.reason } : {}), ...(applied.type ? { type: applied.type } : {}) }),
+    [status, page, applied],
+  );
   const { data, state, error, reload } = useLoad('/admin/reports', params);
 
   const [openId, setOpenId] = useState(null);
@@ -38,6 +46,18 @@ export default function Reports() {
     setPage(1);
     setOpenId(null);
   };
+  const applyFilters = (e) => {
+    e.preventDefault();
+    setApplied({ q: draft.q.trim(), reason: draft.reason, type: draft.type });
+    setPage(1);
+    setOpenId(null);
+  };
+  const clearFilters = () => {
+    setDraft({ q: '', reason: '', type: '' });
+    setApplied({ q: '', reason: '', type: '' });
+    setPage(1);
+  };
+  const filtered = Boolean(applied.q || applied.reason || applied.type);
   const pages = Math.max(1, Math.ceil((data?.total || 0) / PAGE));
 
   async function act(report, action) {
@@ -68,6 +88,49 @@ export default function Reports() {
         </p>
       )}
 
+      <form onSubmit={applyFilters} role="search" aria-label="Filter reports" className={styles.head} style={{ alignItems: 'flex-end' }}>
+        <div className={styles.field} style={{ flex: 1, minWidth: 200 }}>
+          <label htmlFor="rq" className={styles.label}>
+            Search
+          </label>
+          <input id="rq" className={styles.input} value={draft.q} onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))} placeholder="Content id, type or details" maxLength={100} />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="rreason" className={styles.label}>
+            Reason
+          </label>
+          <select id="rreason" className={styles.input} value={draft.reason} onChange={(e) => setDraft((d) => ({ ...d, reason: e.target.value }))}>
+            <option value="">Any</option>
+            {REASONS.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="rtype" className={styles.label}>
+            Content type
+          </label>
+          <select id="rtype" className={styles.input} value={draft.type} onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}>
+            <option value="">Any</option>
+            {TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" className={styles.btn}>
+          Search
+        </button>
+        {filtered && (
+          <button type="button" className={`${styles.btn} ${styles.btnOutline}`} onClick={clearFilters}>
+            Clear
+          </button>
+        )}
+      </form>
+
       <div className={styles.tabs} role="tablist" aria-label="Report status">
         {FILTERS.map(([key, label]) => (
           <button key={key} type="button" role="tab" aria-selected={status === key} className={`${styles.tab} ${status === key ? styles.tabActive : ''}`} onClick={() => pick(key)}>
@@ -85,7 +148,7 @@ export default function Reports() {
           </button>
         </p>
       )}
-      {state === 'ready' && data.items.length === 0 && <p className={styles.note}>No reports here.</p>}
+      {state === 'ready' && data.items.length === 0 && <p className={styles.note}>{filtered ? 'No reports match these filters.' : 'No reports here.'}</p>}
 
       {state === 'ready' && data.items.length > 0 && (
         <div className={styles.tableWrap}>
