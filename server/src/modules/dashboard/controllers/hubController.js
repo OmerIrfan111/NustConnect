@@ -1,4 +1,4 @@
-const { search, summary } = require('../aggregate');
+const { search, summary, recommended } = require('../aggregate');
 const { HttpError } = require('../../../core/errors');
 
 const registryOf = (req) => req.app.locals.modules || new Map();
@@ -16,4 +16,9 @@ async function summarise(req, res) {
   res.json(await summary(registryOf(req), req.user.id, { timeoutMs: req.app.locals.providerTimeoutMs }));
 }
 
-module.exports = { searchAll, summarise };
+/** GET /recommended: opportunities for the dashboard widget (from the reviews module's provider). */
+async function recommend(req, res) {
+  res.json({ items: await recommended(registryOf(req), { timeoutMs: req.app.locals.providerTimeoutMs }) });
+}
+
+module.exports = { searchAll, summarise, recommend };

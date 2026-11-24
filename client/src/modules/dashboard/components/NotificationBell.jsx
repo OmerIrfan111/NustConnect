@@ -5,14 +5,24 @@ import http from '@core/api/http.js';
 import { timeAgo } from '../timeAgo.js';
 import styles from './topbar.module.css';
 
-/** Top-bar bell (slot `topbarNotifications`): unread badge plus a dropdown with the latest notifications. */
-export default function NotificationBell() {
+const POLL_MS = 30000;
+
+/**
+ * Top-bar bell (slot `topbarNotifications`): unread badge plus a dropdown with the latest notifications.
+ * The badge is refreshed every 30 s while the tab is visible, and straight away when the tab becomes visible again.
+ * New notifications are announced to screen readers through a polite live region.
+ */
+export default function NotificationBell({ pollMs = POLL_MS }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState([]);
   const [state, setState] = useState('idle'); // idle | loading | error
+  const [announce, setAnnounce] = useState('');
   const ref = useRef(null);
+  const btnRef = useRef(null);
+  const unreadRef = useRef(0);
+  unreadRef.current = unread;
 
   const load = useCallback(async () => {
     setState('loading');
@@ -31,11 +41,40 @@ export default function NotificationBell() {
     load();
   }, [load]);
 
+  // Lightweight polling of the unread count. Paused while the tab is hidden.
+  useEffect(() => {
+    let stopped = false;
+    const poll = async () => {
+      if (document.visibilityState === 'hidden') return;
+      try {
+        const { data } = await http.get('/dashboard/notifications/unread-count');
+        if (stopped || typeof data?.unread !== 'number') return;
+        const gained = data.unread - unreadRef.current;
+        if (gained > 0) setAnnounce(`${gained} new notification${gained === 1 ? '' : 's'}`);
+        setUnread(data.unread);
+      } catch {
+        /* a failed poll is silent: the next one will try again */
+      }
+    };
+    const timer = setInterval(poll, pollMs);
+    const onVisible = () => document.visibilityState === 'visible' && poll();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [pollMs]);
+
   useEffect(() => {
     if (!open) return undefined;
     load();
     const onDoc = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
-    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      btnRef.current?.focus(); // give focus back to the bell
+    };
     document.addEventListener('mousedown', onDoc);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -64,7 +103,11 @@ export default function NotificationBell() {
 
   return (
     <div className={styles.bellWrap} ref={ref}>
+      <span role="status" aria-live="polite" className="nc-sr-only">
+        {announce}
+      </span>
       <button
+        ref={btnRef}
         type="button"
         className={styles.bell}
         aria-label={label}

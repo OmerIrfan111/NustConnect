@@ -98,4 +98,22 @@ async function summary(registry, userId, { timeoutMs } = {}) {
   return { stats, recent: recent.slice(0, 8), skipped };
 }
 
-module.exports = { search, summary, safeUrl, DEFAULT_TIMEOUT_MS };
+/**
+ * recommended(registry) -> [{ id, title, snippet, url }] (at most 3)
+ * Opportunities come from the reviews module's `searchProvider`: it should return opportunity results with
+ * `type: 'opportunity'` (the dashboard asks with an empty query and `{ limit, type: 'opportunity' }`). No provider, a failure
+ * or no opportunities gives an empty list, and the dashboard then shows its labelled sample widget instead.
+ */
+async function recommended(registry, { timeoutMs } = {}) {
+  const reviews = new Map([...registry].filter(([slug]) => slug === 'reviews'));
+  const ran = await runProviders(reviews, 'searchProvider', (p) => p('', { limit: 10, type: 'opportunity' }), timeoutMs);
+  const hit = ran[0];
+  if (!hit || hit.error || !Array.isArray(hit.value)) return [];
+  return hit.value
+    .map((r) => clean(r, 'reviews'))
+    .filter((r) => r.type === 'opportunity' && r.url)
+    .slice(0, 3)
+    .map(({ id, title, snippet, url }) => ({ id, title, snippet, url }));
+}
+
+module.exports = { search, summary, recommended, safeUrl, DEFAULT_TIMEOUT_MS };

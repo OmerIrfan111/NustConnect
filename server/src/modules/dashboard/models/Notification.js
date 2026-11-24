@@ -9,6 +9,8 @@ const notificationSchema = new mongoose.Schema(
     body: { type: String, default: '', maxlength: 500 },
     link: { type: String, default: '', maxlength: 300 }, // client route, e.g. '/rides/123'
     read: { type: Boolean, default: false },
+    important: { type: Boolean, default: false }, // included in the email digest while still unread
+    emailedAt: { type: Date, default: null }, // set once a digest email has listed it
   },
   { timestamps: true, collection: 'dashboard_notifications' },
 );

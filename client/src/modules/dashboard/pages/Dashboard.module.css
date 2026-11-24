@@ -194,6 +194,38 @@ a.card:hover,
   border-color: var(--nc-teal);
 }
 
+/* Loading placeholders (decorative; the section announces aria-busy). Motion is off for users who ask for less. */
+.skeleton {
+  display: grid;
+  gap: var(--nc-space-3);
+}
+.skeletonRow,
+.statSkeleton {
+  display: block;
+  border-radius: var(--nc-radius-sm);
+  background: linear-gradient(90deg, var(--nc-border), var(--nc-bg), var(--nc-border));
+  background-size: 200% 100%;
+  animation: nc-shimmer 1.4s linear infinite;
+}
+.skeletonRow {
+  height: 18px;
+}
+.statSkeleton {
+  height: 40px;
+  width: 60%;
+}
+@keyframes nc-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow,
+  .statSkeleton {
+    animation: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .stats {
     grid-template-columns: repeat(2, 1fr);

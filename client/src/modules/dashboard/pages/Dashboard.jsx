@@ -21,25 +21,49 @@ export function mergeStats(live = []) {
   });
 }
 
-/** Student Dashboard (WF-02). Live where a module provides a summary, labelled sample data everywhere else. */
-export default function Dashboard() {
-  const { user } = useAuth();
-  const firstName = (user?.name || 'there').split(' ')[0];
-  const [summary, setSummary] = useState(null); // null until loaded, or when it fails
-
+/** Loads one optional widget: 'loading' until the request settles, then 'live' (with data) or 'sample' (failed or empty). */
+function useWidget(url, pick) {
+  const [widget, setWidget] = useState({ state: 'loading', data: null });
   useEffect(() => {
     let active = true;
     http
-      .get('/dashboard/summary')
-      .then(({ data }) => active && setSummary(data))
-      .catch(() => {}); // keep the sample widgets: the dashboard never shows an error wall for optional data
+      .get(url)
+      .then(({ data }) => {
+        if (!active) return;
+        const picked = pick(data);
+        setWidget(picked ? { state: 'live', data: picked } : { state: 'sample', data: null });
+      })
+      // Optional data never produces an error wall: the widget falls back to its labelled sample content.
+      .catch(() => active && setWidget({ state: 'sample', data: null }));
     return () => {
       active = false;
     };
-  }, []);
+    // `pick` is a module-level function, so it is stable.
+  }, [url, pick]);
+  return widget;
+}
 
-  const stats = mergeStats(summary?.stats);
-  const liveRecent = summary?.recent?.length > 0;
+const pickSummary = (d) => (d && (d.stats?.length || d.recent?.length) ? d : null);
+const pickOpportunities = (d) => (d?.items?.length ? d.items : null);
+
+const Skeleton = ({ rows = 3 }) => (
+  <div className={styles.skeleton} aria-hidden="true">
+    {Array.from({ length: rows }, (_, i) => (
+      <span key={i} className={styles.skeletonRow} />
+    ))}
+  </div>
+);
+
+/** Student Dashboard (WF-02). Each widget is live when its module provides data, otherwise clearly labelled sample data. */
+export default function Dashboard() {
+  const { user } = useAuth();
+  const firstName = (user?.name || 'there').split(' ')[0];
+  const summary = useWidget('/dashboard/summary', pickSummary);
+  const opportunities = useWidget('/dashboard/recommended', pickOpportunities);
+
+  const loadingSummary = summary.state === 'loading';
+  const stats = mergeStats(summary.data?.stats);
+  const liveRecent = summary.data?.recent?.length > 0;
 
   return (
     <div className={styles.page}>
@@ -48,12 +72,18 @@ export default function Dashboard() {
         <p className={styles.lead}>Everything happening around your campus, in one place.</p>
       </header>
 
-      <section aria-label="Your numbers" className={styles.stats}>
+      <section aria-label="Your numbers" aria-busy={loadingSummary} className={styles.stats}>
         {stats.map((s) => (
           <Link key={s.label} to={s.to} className={`${styles.card} ${styles.stat}`}>
             <span className={styles.statLabel}>{s.label}</span>
-            <span className={styles.statValue}>{s.value}</span>
-            {s.sample && <SampleTag />}
+            {loadingSummary ? (
+              <span className={styles.statSkeleton} aria-label="Loading" />
+            ) : (
+              <>
+                <span className={styles.statValue}>{s.value}</span>
+                {s.sample && <SampleTag />}
+              </>
+            )}
           </Link>
         ))}
       </section>
@@ -76,53 +106,70 @@ export default function Dashboard() {
       </section>
 
       <div className={styles.lower}>
-        <section aria-labelledby="recent" className={`${styles.card} ${styles.panel}`}>
+        <section aria-labelledby="recent" aria-busy={loadingSummary} className={`${styles.card} ${styles.panel}`}>
           <div className={styles.panelHead}>
             <h2 id="recent" className={styles.cardTitle}>
               Recent activity
             </h2>
-            {!liveRecent && <SampleTag />}
+            {!loadingSummary && !liveRecent && <SampleTag />}
           </div>
-          <ul className={styles.list}>
-            {liveRecent
-              ? summary.recent.map((a, i) => (
-                  <li key={`${a.module}-${i}`}>
-                    <Link to={a.url || `/${a.module}`} className={styles.activity}>
-                      <span className={styles.dot} aria-hidden="true" />
-                      <span className={styles.activityText}>{a.text}</span>
-                      <span className={styles.when}>{a.at ? timeAgo(a.at) : ''}</span>
-                    </Link>
-                  </li>
-                ))
-              : SAMPLE_ACTIVITY.map((a) => (
-                  <li key={a.id}>
-                    <Link to={a.to} className={styles.activity}>
-                      <span className={styles.dot} aria-hidden="true" />
-                      <span className={styles.activityText}>{a.text}</span>
-                      <span className={styles.when}>{a.at}</span>
-                    </Link>
-                  </li>
-                ))}
-          </ul>
+          {loadingSummary ? (
+            <Skeleton rows={4} />
+          ) : (
+            <ul className={styles.list}>
+              {liveRecent
+                ? summary.data.recent.map((a, i) => (
+                    <li key={`${a.module}-${i}`}>
+                      <Link to={a.url || `/${a.module}`} className={styles.activity}>
+                        <span className={styles.dot} aria-hidden="true" />
+                        <span className={styles.activityText}>{a.text}</span>
+                        <span className={styles.when}>{a.at ? timeAgo(a.at) : ''}</span>
+                      </Link>
+                    </li>
+                  ))
+                : SAMPLE_ACTIVITY.map((a) => (
+                    <li key={a.id}>
+                      <Link to={a.to} className={styles.activity}>
+                        <span className={styles.dot} aria-hidden="true" />
+                        <span className={styles.activityText}>{a.text}</span>
+                        <span className={styles.when}>{a.at}</span>
+                      </Link>
+                    </li>
+                  ))}
+            </ul>
+          )}
         </section>
 
-        <section aria-labelledby="opps" className={`${styles.card} ${styles.panel}`}>
+        <section aria-labelledby="opps" aria-busy={opportunities.state === 'loading'} className={`${styles.card} ${styles.panel}`}>
           <div className={styles.panelHead}>
             <h2 id="opps" className={styles.cardTitle}>
               Recommended opportunities
             </h2>
-            <SampleTag />
+            {opportunities.state === 'sample' && <SampleTag />}
           </div>
-          <ul className={styles.list}>
-            {SAMPLE_OPPORTUNITIES.map((o) => (
-              <li key={o.id}>
-                <Link to={o.to} className={styles.opp}>
-                  <strong>{o.title}</strong>
-                  <span className={styles.cardSub}>{o.meta}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {opportunities.state === 'loading' ? (
+            <Skeleton rows={3} />
+          ) : (
+            <ul className={styles.list}>
+              {opportunities.state === 'live'
+                ? opportunities.data.map((o) => (
+                    <li key={o.id}>
+                      <Link to={o.url} className={styles.opp}>
+                        <strong>{o.title}</strong>
+                        {o.snippet && <span className={styles.cardSub}>{o.snippet}</span>}
+                      </Link>
+                    </li>
+                  ))
+                : SAMPLE_OPPORTUNITIES.map((o) => (
+                    <li key={o.id}>
+                      <Link to={o.to} className={styles.opp}>
+                        <strong>{o.title}</strong>
+                        <span className={styles.cardSub}>{o.meta}</span>
+                      </Link>
+                    </li>
+                  ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>

@@ -38,8 +38,9 @@ beforeEach(() => {
 });
 
 describe('Dashboard', () => {
-  test('greets by first name, shows 4 stats, 6 quick-access cards, and labels sample data', () => {
+  test('greets by first name, shows 4 stats, 6 quick-access cards, and labels sample data', async () => {
     renderApp(<Dashboard />);
+    await waitFor(() => expect(screen.getAllByText('Sample data').length).toBeGreaterThanOrEqual(4)); // widgets settle to labelled samples
     expect(screen.getByRole('heading', { name: 'Welcome back, Ahmed' })).toBeInTheDocument();
     for (const label of ['Active Rides', 'Marketplace Listings', 'Saved Reviews', 'Upcoming Events']) {
       expect(screen.getByText(label)).toBeInTheDocument();

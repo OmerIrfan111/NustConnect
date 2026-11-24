@@ -22,7 +22,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 ## Current state
 
 **Phase:** 1 (Core) built, awaiting live-DB QA and visual check at 1440/768/375. Branch cut from local `base/server` + `origin/base/client` (no `v0.1-base` tag yet); re-merge `main` once it exists.  
-**Phase 2 (Depth) is built.** **Next step:** QA-1 and QA-2 against a real MongoDB with real modules, then Phase 3 (polling bell, email digest, reviews providers, accessibility, Lighthouse).
+**Phases 1, 2 and 3 are built.** **Next step:** run QA-1/2/3 against a real MongoDB with the real modules merged (each of the 9 modules must appear in search and summaries), then a Lighthouse mobile run and a manual keyboard / screen-reader pass.
 
 ## Phase 1 — Core
 
@@ -57,9 +57,9 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 **Deliverables**
 
-- [ ] Bell polling (or SSE); email digest for important events
-- [ ] Recommended opportunities and Saved Reviews from reviews providers
-- [ ] Empty / loading / error states per widget; notification pagination; API tests
+- [x] Bell polling (or SSE); email digest for important events
+- [x] Recommended opportunities and Saved Reviews from reviews providers
+- [x] Empty / loading / error states per widget; notification pagination; API tests
 
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
@@ -76,11 +76,21 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 | POST | /api/dashboard/notifications/read-all | session | Marks all own as read |
 | POST | /api/dashboard/notifications/:id/read | session | 404 for someone else's id |
 
+### Phase 3 details
+
+- **Bell:** the unread count is polled every 30 s while the tab is visible (paused when hidden, refreshed immediately on return). New notifications are announced through a polite `aria-live` region. Escape closes the panel and returns focus to the bell.
+- **Notifications:** `notify(userId, { ..., important: true })` also marks the item for the email digest (only while unread, once, within 24 h).
+- **Email digest** (`digest.js`): groups important unread notifications per user and sends one email each. Addresses never leave the auth module's API: the digest calls the auth server contract `contactForNotifications(userIds) -> [{ id, name, email }]` (only users who allow email), reached through the registry. Run it once a day from cron / Task Scheduler: `curl -X POST -H "X-Digest-Key: $DIGEST_KEY" http://localhost:5000/api/dashboard/digest/run`. New env var for `.env.example`: `DIGEST_KEY`.
+- **Widgets:** stats, recent activity and opportunities each show a busy placeholder, then live data, or labelled sample data when empty or failed. Saved Reviews comes from the reviews module's `summaryProvider` stat labelled `Saved Reviews`; Active Rides, Marketplace Listings and Upcoming Events likewise.
+- **Contract notes for other modules:** export a `summaryProvider` whose `stat.label` matches the card label; reviews returns opportunities from `searchProvider` with `type: 'opportunity'`; any module with important events calls `notify(..., { important: true })`.
+
 Aggregation lives in `aggregate.js`. A module with no provider, a provider that throws, or one slower than the timeout is skipped (listed in `skipped`), so one broken module never breaks search or the dashboard.
 
 `notify(userId, { type, title, body, link })` (`server/src/modules/dashboard/notify.js`): never throws, drops non-`/` links.
 | GET | /api/dashboard/search?q=&type=&limit= | verified | Aggregates every module's `searchProvider` in parallel. `{ q, groups: [{ module, results }], types, total, skipped }`. q needs 2+ chars. 1.5 s per-provider timeout. Result URLs must be same-site paths |
 | GET | /api/dashboard/summary | verified | Aggregates every module's `summaryProvider(userId)`: `{ stats, recent (newest first, max 8), skipped }` |
+| GET | /api/dashboard/recommended | verified | Up to 3 opportunities from the reviews module's `searchProvider('', { limit, type: 'opportunity' })` (results must have `type: 'opportunity'`). Empty list when there is no provider |
+| POST | /api/dashboard/digest/run | `X-Digest-Key` header | Machine-to-machine email digest trigger. 404 unless `DIGEST_KEY` is set; 401 on a wrong key |
 
 ## Models
 
@@ -90,7 +100,8 @@ Aggregation lives in `aggregate.js`. A module with no provider, a provider that 
 
 - The core route tests now render the real dashboard and bell, which call the API; with no server running jsdom prints harmless network errors. Cosmetic (a shared `client/src/test/setup.js` stub would silence it, a core-change).
 - Stats and recent activity are live once modules export `summaryProvider`; until then they are labelled sample data. Recommended opportunities stay sample until the reviews provider (Phase 3).
-- Bell loads on mount and on open; polling is Phase 3.
+- The digest has no in-process scheduler: it needs an external daily trigger (see above).
+- Lighthouse (>= 80 on mobile) and the screen-reader pass have not been run; only automated checks exist.
 - API tests use a mocked model, not yet run against a real MongoDB.
 
 ## QA log
@@ -107,3 +118,4 @@ Aggregation lives in `aggregate.js`. A module with no provider, a provider that 
 |------|-----|------|-----------------|
 | 2026-11-24 | Omer + Claude | Phase 1 built: Notification model, list / unread-count / mark-read / read-all API, real `notify()`, Dashboard page (WF-02, sample data labelled), NotificationBell and GlobalSearchBar top-bar slots, Notifications page with filter + pagination. 7 API + 8 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for the 2 placeholder tests. Then Phase 2 (`/search` page, aggregators). |
 | 2026-11-24 | Omer + Claude | Phase 2 built: search aggregator (parallel, isolated, timeout, URL sanitising, type filter), summary aggregator, `/search` page with grouped results, type chips and retry, Dashboard stats + recent activity driven by summaries with labelled sample fallback. 12 API + 9 UI tests. | QA-2 with real providers once the other modules land. Phase 3. |
+| 2026-11-24 | Omer + Claude | Phase 3 built: bell polling with live-region announcements and focus return, email digest (`important` flag, auth `contactForNotifications` contract, key-guarded trigger endpoint), `/recommended` from the reviews provider, per-widget loading / live / sample states. 19 new API tests (digest, recommended, notify flag), 9 new UI tests. | Real-MongoDB QA, Lighthouse, manual accessibility pass, all 9 modules in search and summaries once merged. |
