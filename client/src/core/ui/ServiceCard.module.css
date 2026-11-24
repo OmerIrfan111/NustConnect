@@ -1,0 +1,24 @@
+.card {
+  display: grid;
+  gap: var(--nc-space-2);
+}
+.tile {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--nc-space-2);
+  border-radius: var(--nc-radius-md);
+  background: var(--nc-teal-light);
+  color: var(--nc-teal-700);
+}
+.title {
+  font-size: var(--nc-fs-card);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-text);
+}
+.desc {
+  font-size: var(--nc-fs-small);
+  line-height: var(--nc-lh-body);
+  color: var(--nc-text-2);
+}

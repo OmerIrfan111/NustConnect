@@ -14,8 +14,34 @@ React (Vite) + React Router · Node.js + Express · MongoDB (Mongoose) · npm wo
 
 ## Status
 
-Pre-base: planning docs only. See [`docs/STATUS.md`](docs/STATUS.md).
-Run instructions (`npm run setup && npm run dev`) will be added with the base version (`v0.1-base`).
+See [`docs/STATUS.md`](docs/STATUS.md) for the current phase.
+
+## Run it
+
+Requirements: Node 20.19 or newer, and a MongoDB (local, or a free Atlas cluster).
+
+```bash
+cp .env.example .env        # then edit MONGODB_URI if yours is not on localhost
+npm run setup               # installs the client and the server (npm workspaces)
+npm run dev                 # client on http://localhost:5173, API on http://localhost:5000
+```
+
+With `VITE_DEV_FAKE_AUTH=true` (the default in `.env.example`) you are signed in as the demo user "Ahmed Khan"; change
+`VITE_DEV_FAKE_ROLE` to try the other roles. In development the server also starts without MongoDB (`/api/health` then
+shows `db: "disconnected"`), and emails are printed to the server console instead of being sent.
+
+| Command | What it does |
+|---------|--------------|
+| `npm run dev` | Client + server together with reload |
+| `npm test` | Client (Vitest) and server (Jest) tests |
+| `npm run lint` | ESLint, including the rule that modules may not import each other |
+| `npm run test:tooling` | Tests for the CI path-ownership check and the import-boundary rule |
+| `npm run check` | Lint + tooling tests + all tests (run this before a PR) |
+| `npm run format` | Prettier |
+| `npm run seed -- all` | Load demo data (`-- <slug>` for one module) |
+| `npm run build` | Production build of the client |
+
+The UI kit (buttons, inputs, badges, star rating, ...) is shown at `/dev/ui` while developing.
 
 ## Documentation
 
