@@ -57,7 +57,8 @@ describe('moderation actions', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Take action' }));
     await userEvent.type(screen.getByLabelText(/Note/), 'Fake ride');
     await userEvent.click(screen.getByRole('button', { name: 'Hide content' }));
-    expect(await screen.findByRole('status')).toHaveTextContent('Recorded in the audit log');
+    // (not findByRole('status'): other modules, such as the notification bell, also own a status live region)
+    expect(await screen.findByText(/Recorded in the audit log/)).toBeInTheDocument();
     expect(http.post).toHaveBeenCalledWith('/admin/reports/r1/hide', { note: 'Fake ride' });
   });
 
