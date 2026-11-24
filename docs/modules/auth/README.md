@@ -35,9 +35,9 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
-- [ ] Register → login → refresh keeps session; wrong password / duplicate email show clear errors
+- [x] Register → login → refresh keeps session; wrong password / duplicate email show clear errors
 - [x] Non-NUST email rejected server-side, not only in UI (API test)
-- [ ] Other modules still run; dev fake-user switch keeps working
+- [x] Other modules still run; dev fake-user switch keeps working
 
 ## Phase 2 — Depth
 
@@ -128,7 +128,7 @@ Sessions: `requireAuth` rejects unverified accounts with 403 `details.code = 'un
 
 | Date | Gate | Tester | Result | Issues |
 |------|------|--------|--------|--------|
-| | | | | |
+| 2026-11-24 | QA-1..3 (partial) | Omer (self) | Self-QA, API level, live server + real MongoDB: 58-check script covering register, verify, login, CSRF, lockout, reset, session invalidation, profile, alumni, delete-my-data (all pass). NOT covered: browser design at 1440/768/375, Lighthouse, screen reader, other modules' hooks and providers. | none found |
 
 ## Session log
 
@@ -141,3 +141,4 @@ Sessions: `requireAuth` rejects unverified accounts with 403 `details.code = 'un
 | 2026-11-24 | Omer + Claude | Added the `userModeration` contract (warn / suspend / unsuspend) that A3's moderation uses, with 4 tests. | Phase 3. |
 | 2026-11-24 | Omer + Claude | Phase 3 built: CSRF (double-submit, enforced in the session contract for all modules), per-IP rate limiting, account lockout, alumni verification (request, admin review page `/admin/alumni`), "delete my data" (with the `deleteUserData` module contract), role-matrix tests (8 routes x 4 roles + anonymous), secrets-in-logs test. 34 new API tests, 9 new UI tests. | Real-MongoDB QA-1/2/3, lint once tooling lands, SRS security checklist on a deployment. |
 | 2026-11-24 | Omer + Claude | Added the in-process `contactForNotifications` contract used by the dashboard email digest, with 4 tests. | Real-MongoDB QA, lint, security checklist. |
+| 2026-11-24 | Omer + Claude | Ran the real end-to-end check (58 checks, live server + MongoDB, seed runner and email digest included): all pass. Recorded as a partial self-QA row. Ticked only the QA bullets this run proves. | Browser / responsive / Lighthouse / screen-reader checks, then Ali's cross-test. |
