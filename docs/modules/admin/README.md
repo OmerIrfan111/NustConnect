@@ -36,7 +36,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
 - [x] Non-admin on /admin/* is redirected/403 (UI and API)
-- [ ] Report from any ReportButton shows in queue
+- [x] Report from any ReportButton shows in queue
 - [x] Progress bar correct at 0 %, 50 %, 100 %
 
 ## Phase 2 — Depth
@@ -143,7 +143,7 @@ Account actions use `registry.get('auth').userModeration = { warn(userId, note),
 
 | Date | Gate | Tester | Result | Issues |
 |------|------|--------|--------|--------|
-| | | | | |
+| 2026-11-24 | QA-1..3 (partial) | Omer (self) | Self-QA, API level, live server + real MongoDB: report intake and de-duplication, queue (no reporter identity), dismiss, filters, campaign progress 0 / 50 / 100 %, updates feed, categories, audit entries with actor and time, analytics, role denials. 58-check script, all pass. NOT covered: browser design at 1440/768/375, Lighthouse, screen reader, other modules' hooks and providers. | none found |
 
 ## Session log
 
@@ -154,3 +154,4 @@ Account actions use `registry.get('auth').userModeration = { warn(userId, note),
 | 2026-11-24 | Omer + Claude | Phase 1 built: Report + Campaign models, report intake (202, de-duplicated), moderation queue API, campaign CRUD with role checks (drafts hidden from students), seed, admin layout slot with a tab bar built from every module's `adminRoutes`, Overview, Moderation, Users (lookup contract), campaign admin list + form, student Donations list + detail with progress bar. 12 API + 18 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for 3 placeholder tests. Then Phase 2. |
 | 2026-11-24 | Omer + Claude | Phase 2 built: hide / restore / dismiss through module hooks (resolved from the registry, no imports), warn / suspend / unsuspend through the auth `userModeration` contract, append-only audit log + page, categories (API + page), pledge records with totals always = sum, campaign updates feed, campaign manage screen, role-gated tabs. 17 new API tests, 14 new UI tests. | QA-2 with the real content modules' hooks. Phase 3: analytics, pagination/search, permission matrix. |
 | 2026-11-24 | Omer + Claude | Phase 3 built: queue search / reason / type filters (regex-safe) with pagination, reporter identity stripped from all responses, analytics endpoint + page (aggregate stats only, provider isolation and timeout), verified filter on Users, full permission matrix (20 routes x 4 roles + anonymous) and privacy tests against the real models, shared `testkit.js`. 19 new API tests, 9 new UI tests. | QA-3 with all modules merged; Ali's cross-test; support module adds its complaint `adminRoutes`. |
+| 2026-11-24 | Omer + Claude | Ran the real end-to-end check (58 checks, live server + MongoDB, seed runner and email digest included): all pass. Recorded as a partial self-QA row. Ticked only the QA bullets this run proves. | Browser / responsive / Lighthouse / screen-reader checks, then Ali's cross-test. |
