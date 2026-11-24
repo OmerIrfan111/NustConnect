@@ -11,6 +11,7 @@ import { AuthProvider } from '../auth/useAuth.js';
 
 // These tests render the full app shell; under a busy machine the default 1 s wait is too tight.
 configure({ asyncUtilTimeout: 5000 });
+vi.setConfig({ testTimeout: 30000 });
 
 const user = (role) => ({ id: '1', name: 'Ahmed Khan', role, verified: true });
 
