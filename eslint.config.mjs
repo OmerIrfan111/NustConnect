@@ -14,58 +14,60 @@ import prettier from 'eslint-config-prettier';
 
 export const SLUGS = ['auth', 'dashboard', 'admin', 'rideshare', 'marketplace', 'reviews', 'lostfound', 'support', 'campus'];
 
-/** The one file per side that every module may import from the auth module. */
-const SESSION_CONTRACT = ['useAuth', 'useAuth.js', 'session', 'session.js'];
+/** The files every module may import from the auth module (the session contract), with and without the extension. */
+export const SESSION_CONTRACT = ['useAuth', 'useAuth.js', 'session', 'session.js'];
+
+/** How a relative import reaches a sibling module from different folder depths, plus the absolute-ish `modules/<slug>` form. */
+const reach = (other) => [`**/modules/${other}/**`, `../${other}/**`, `../../${other}/**`, `../../../${other}/**`, `../../../../${other}/**`];
+const reachBare = (other) => [`**/modules/${other}`, `../${other}`, `../../${other}`, `../../../${other}`];
 
 /**
- * Patterns that forbid importing module `other` from inside module `own`.
- * Relative imports are matched by the `../<other>/` segment, absolute-ish ones by `modules/<other>/`.
+ * Gitignore-style patterns that forbid module `own` from importing module `other`.
+ *
+ * Note for `auth`: gitignore cannot re-include a file whose parent folder is excluded, so for auth we exclude the CONTENTS
+ * (`auth/**`) and then re-include the two session-contract files. The bare `../auth` form is therefore not matched; importing
+ * the auth folder's index is covered by the contents rule anyway when it resolves to a file path with a subfolder.
  */
 export function boundaryPatterns(own) {
-  return SLUGS.filter((s) => s !== own).map((other) => ({
-    group: [`**/modules/${other}`, `**/modules/${other}/**`, `../${other}`, `../${other}/**`, `../../${other}`, `../../${other}/**`],
-    message: `Modules must not import each other ("${own}" -> "${other}"). Use the contracts in docs/CONTRACTS.md or link by route path.`,
-  }));
+  return SLUGS.filter((s) => s !== own).map((other) => {
+    if (other !== 'auth') return { other, group: [...reach(other), ...reachBare(other)] };
+    const allow = SESSION_CONTRACT.flatMap((f) => [`!**/modules/auth/${f}`, ...[1, 2, 3, 4].map((n) => `!${'../'.repeat(n)}auth/${f}`)]);
+    return { other, group: [...reach('auth'), ...allow] };
+  });
 }
 
-/**
- * `auth` is special: any module may import its session contract file. Those two files are allowed by listing auth's
- * boundary pattern WITHOUT matching the contract files (negated with a leading `!`).
- */
-const withSessionException = (patterns) =>
-  patterns.map((p) =>
-    p.group.some((g) => g.includes('/auth') || g.endsWith('auth'))
-      ? { ...p, group: [...p.group, ...SESSION_CONTRACT.flatMap((f) => [`!**/auth/${f}`, `!../auth/${f}`, `!../../auth/${f}`])] }
-      : p,
-  );
+const message = (own, other) =>
+  `Modules must not import each other ("${own}" -> "${other}"). Use the contracts in docs/CONTRACTS.md or link by route path.`;
 
-// Client code uses ES `import`; server code is CommonJS `require`, which needs the sibling rule.
-const moduleBoundary = (side, own) => ({
-  files: [`${side}/src/modules/${own}/**/*.{js,jsx}`],
-  rules: {
-    [side === 'server' ? 'no-restricted-modules' : 'no-restricted-imports']: [
-      'error',
-      { patterns: withSessionException(boundaryPatterns(own)) },
-    ],
-  },
-});
+// Client code uses ES `import` (object patterns with a message). Server code is CommonJS `require`: its rule only takes plain strings.
+const moduleBoundary = (side, own) => {
+  const patterns = boundaryPatterns(own);
+  return {
+    files: [`${side}/src/modules/${own}/**/*.{js,jsx}`],
+    rules:
+      side === 'server'
+        ? { 'no-restricted-modules': ['error', { patterns: patterns.flatMap((p) => p.group) }] }
+        : { 'no-restricted-imports': ['error', { patterns: patterns.map((p) => ({ group: p.group, message: message(own, p.other) })) }] },
+  };
+};
 
-const coreMayNotImportModules = (side) => ({
-  files: [`${side}/src/core/ui/**/*.{js,jsx}`],
+// The UI kit is shared by everyone, so it must not depend on any module, except the session contract (ReportButton needs useAuth).
+const uiKitBoundary = {
+  files: ['client/src/core/ui/**/*.{js,jsx}'],
   rules: {
     'no-restricted-imports': [
       'error',
       {
         patterns: [
           {
-            group: ['**/modules/**', ...SESSION_CONTRACT.map((f) => `!**/modules/auth/${f}`)],
+            group: ['**/modules/*/**', ...SESSION_CONTRACT.map((f) => `!**/modules/auth/${f}`)],
             message: 'The UI kit is shared by every module: it must not import from any module (except the session contract).',
           },
         ],
       },
     ],
   },
-});
+};
 
 export default [
   { ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**', '**/uploads/**', 'docs/**', 'client/public/**'] },
@@ -104,14 +106,28 @@ export default [
   },
   {
     files: ['client/**/*.test.{js,jsx}', 'client/src/test/**/*.js'],
-    languageOptions: { globals: { ...globals.browser, ...globals.node, vi: 'readonly', describe: 'readonly', it: 'readonly', test: 'readonly', expect: 'readonly', beforeEach: 'readonly', afterEach: 'readonly', beforeAll: 'readonly', afterAll: 'readonly' } },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
   },
   { files: ['client/vite.config.js', 'eslint.config.mjs', '.github/**/*.mjs'], languageOptions: { globals: { ...globals.node } } },
   { files: ['.github/**/*.mjs'], languageOptions: { sourceType: 'module', ecmaVersion: 2023 } },
 
-  // ---- Import boundaries: one block per module and side
+  // ---- Import boundaries: one block per module and side, plus the UI kit
   ...['client', 'server'].flatMap((side) => SLUGS.map((own) => moduleBoundary(side, own))),
-  coreMayNotImportModules('client'),
+  uiKitBoundary,
 
   prettier,
 ];
