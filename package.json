@@ -1,0 +1,37 @@
+{
+  "name": "nustconnect",
+  "private": true,
+  "version": "0.1.0",
+  "description": "NUSTConnect: one campus, one community.",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "setup": "npm install",
+    "dev": "concurrently -k -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "seed": "npm run seed -w server --",
+    "test": "npm run test -w client && npm run test -w server",
+    "test:tooling": "node --test .github/scripts/ownership.test.mjs .github/scripts/boundary.test.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run test:tooling && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.0.0"
+  }
+}

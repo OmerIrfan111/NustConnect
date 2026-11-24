@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fails a PR that edits files outside what its branch may touch (CLAUDE.md rule 1).
+  ownership:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Path ownership
+        run: node .github/scripts/check-ownership.mjs "${{ github.head_ref }}" "origin/${{ github.base_ref }}"
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install (lockfile only, never hand-merged)
+        run: npm ci
+      - name: Lint (includes the module import boundaries)
+        run: npm run lint
+      - name: Tooling tests
+        run: npm run test:tooling
+      - name: Server tests (Jest)
+        run: npm test -w server
+      - name: Client tests (Vitest)
+        run: npm test -w client
+      - name: Client build
+        run: npm run build
