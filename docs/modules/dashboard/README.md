@@ -36,7 +36,7 @@ Full spec: `docs/PROJECT_PLAN.md` (module section). Contract shapes: `docs/CONTR
 **QA gate (plus the standard checklist in PROJECT_PLAN §5.1)**
 
 - [ ] Dashboard matches wireframe at 1440 / 768 / 375; sample data labelled
-- [ ] `notify()` from a test script shows in the bell
+- [x] `notify()` from a test script shows in the bell
 - [ ] Sidebar highlights Dashboard; no console errors
 
 ## Phase 2 — Depth
@@ -108,7 +108,7 @@ Aggregation lives in `aggregate.js`. A module with no provider, a provider that 
 
 | Date | Gate | Tester | Result | Issues |
 |------|------|--------|--------|--------|
-| | | | | |
+| 2026-11-24 | QA-1..3 (partial) | Omer (self) | Self-QA, API level, live server + real MongoDB: notify() then unread count, list, mark read, read-all, other user's id is 404, search / summary answer with no providers; email digest run against the real collections (sends once, never twice). 58-check script, all pass. NOT covered: browser design at 1440/768/375, Lighthouse, screen reader, other modules' hooks and providers. | none found |
 
 ## Session log
 
@@ -119,3 +119,4 @@ Aggregation lives in `aggregate.js`. A module with no provider, a provider that 
 | 2026-11-24 | Omer + Claude | Phase 1 built: Notification model, list / unread-count / mark-read / read-all API, real `notify()`, Dashboard page (WF-02, sample data labelled), NotificationBell and GlobalSearchBar top-bar slots, Notifications page with filter + pagination. 7 API + 8 UI tests. | Live-DB QA-1 and responsive check. Core-change issue for the 2 placeholder tests. Then Phase 2 (`/search` page, aggregators). |
 | 2026-11-24 | Omer + Claude | Phase 2 built: search aggregator (parallel, isolated, timeout, URL sanitising, type filter), summary aggregator, `/search` page with grouped results, type chips and retry, Dashboard stats + recent activity driven by summaries with labelled sample fallback. 12 API + 9 UI tests. | QA-2 with real providers once the other modules land. Phase 3. |
 | 2026-11-24 | Omer + Claude | Phase 3 built: bell polling with live-region announcements and focus return, email digest (`important` flag, auth `contactForNotifications` contract, key-guarded trigger endpoint), `/recommended` from the reviews provider, per-widget loading / live / sample states. 19 new API tests (digest, recommended, notify flag), 9 new UI tests. | Real-MongoDB QA, Lighthouse, manual accessibility pass, all 9 modules in search and summaries once merged. |
+| 2026-11-24 | Omer + Claude | Ran the real end-to-end check (58 checks, live server + MongoDB, seed runner and email digest included): all pass. Recorded as a partial self-QA row. Ticked only the QA bullets this run proves. | Browser / responsive / Lighthouse / screen-reader checks, then Ali's cross-test. |
