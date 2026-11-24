@@ -1,5 +1,9 @@
 process.env.NODE_ENV = 'test';
 
+// Each appAs() builds a fresh app and loads every module present on the branch. When the other modules are merged in
+// (auth with bcrypt/multer/nodemailer, and so on) that takes a few seconds, so allow for it.
+jest.setTimeout(60000);
+
 // ---- In-memory stand-ins for the Mongoose models. Rows live on `global` so they survive per-role module resets ----
 global.__adminDb = {};
 let seq = 0;
@@ -307,7 +311,9 @@ describe('user moderation through the auth contract', () => {
   test('an unknown user is 404 and a missing auth contract is 409; neither is audited', async () => {
     const gone = authModule({ suspend: jest.fn(async () => false) });
     expect((await request(appAs('admin', [gone])).post('/api/admin/users/u7/suspend').send({ reason: 'Some reason' })).status).toBe(404);
-    expect((await request(appAs('admin')).post('/api/admin/users/u7/suspend').send({ reason: 'Some reason' })).status).toBe(409);
+    const noAuth = appAs('admin');
+    noAuth.locals.modules.delete('auth'); // the contract is absent: even when the real auth module is merged in
+    expect((await request(noAuth).post('/api/admin/users/u7/suspend').send({ reason: 'Some reason' })).status).toBe(409);
     expect(db('audit') || []).toHaveLength(0);
   });
 });
