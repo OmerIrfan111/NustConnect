@@ -27,9 +27,23 @@ const CAMPAIGN = (over = {}) => ({
   id: 'c1', title: 'Flood relief', description: 'Help', goalAmount: 1000, raisedAmount: 500, progress: 50, status: 'active', sample: true, ...over,
 });
 
+/**
+ * Route mocks by URL, so other modules' top-bar widgets (for example the notification bell, which also calls
+ * http.get) cannot consume a response meant for the page under test.
+ */
+let routes = {};
+const reply = (url, value) => (routes[url] = value);
+
 beforeEach(() => {
   vi.clearAllMocks();
-  http.get.mockResolvedValue({ data: { items: [], total: 0 } });
+  routes = {};
+  http.get.mockImplementation((url) => {
+    if (url in routes) {
+      const v = routes[url];
+      return v instanceof Error || v?.status ? Promise.reject(v) : Promise.resolve(v);
+    }
+    return Promise.resolve({ data: { items: [], total: 0, unread: 0 } });
+  });
 });
 
 describe('progress math', () => {
@@ -86,18 +100,18 @@ describe('role gating (QA-1)', () => {
 
 describe('moderation queue', () => {
   test('lists reports with loading, empty and error states', async () => {
-    http.get.mockResolvedValueOnce({
+    reply('/admin/reports', {
       data: { total: 1, items: [{ id: 'r1', targetType: 'ride', targetId: '42', reason: 'spam', details: 'fake', status: 'open', createdAt: '2026-11-20T10:00:00Z' }] },
     });
     renderApp('/admin/reports', 'moderator');
     expect(await screen.findByText('ride #42')).toBeInTheDocument();
     expect(screen.getByText('spam')).toBeInTheDocument();
 
-    http.get.mockResolvedValueOnce({ data: { items: [], total: 0 } });
+    reply('/admin/reports', { data: { items: [], total: 0 } });
     await userEvent.click(screen.getByRole('tab', { name: 'Resolved' }));
     expect(await screen.findByText('No reports here.')).toBeInTheDocument();
 
-    http.get.mockRejectedValueOnce({ status: 500, message: 'Server down' });
+    reply('/admin/reports', { status: 500, message: 'Server down' });
     await userEvent.click(screen.getByRole('tab', { name: 'Open' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Server down');
   });
@@ -106,7 +120,7 @@ describe('moderation queue', () => {
 describe('users lookup', () => {
   test('searches through the lookup contract and shows only name, verified and id', async () => {
     renderApp('/admin/users', 'moderator');
-    http.get.mockResolvedValueOnce({ data: [{ id: 'u1', name: 'Ayesha Malik', verified: true }] });
+    reply('/auth/users/lookup', { data: [{ id: 'u1', name: 'Ayesha Malik', verified: true }] });
     await userEvent.type(await screen.findByLabelText('Name'), 'aye');
     await userEvent.click(screen.getByRole('button', { name: 'Search' }));
     expect(await screen.findByText('Ayesha Malik')).toBeInTheDocument();
@@ -125,7 +139,7 @@ describe('users lookup', () => {
 
 describe('donations', () => {
   test('students see campaigns with progress and a sample-data label', async () => {
-    http.get.mockResolvedValue({ data: { items: [CAMPAIGN()] } });
+    reply('/admin/campaigns', { data: { items: [CAMPAIGN()] } });
     renderApp('/donations', 'student');
     expect(await screen.findByText('Flood relief')).toBeInTheDocument();
     expect(screen.getByText('Sample data')).toBeInTheDocument();
@@ -139,7 +153,7 @@ describe('donations', () => {
   });
 
   test('detail page shows 100 % when fully funded', async () => {
-    http.get.mockResolvedValue({ data: { campaign: CAMPAIGN({ raisedAmount: 1000, progress: 100, status: 'closed' }) } });
+    reply('/admin/campaigns/c1', { data: { campaign: CAMPAIGN({ raisedAmount: 1000, progress: 100, status: 'closed' }) } });
     renderApp('/donations/c1', 'student');
     expect(await screen.findByRole('heading', { name: 'Flood relief' })).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
