@@ -16,6 +16,9 @@ export default {
     { path: '/verify', component: lazy(() => import('./pages/Verify.jsx')), title: 'Verify email', layout: 'bare' },
     { path: '/forgot-password', component: lazy(() => import('./pages/ForgotPassword.jsx')), title: 'Forgot password', layout: 'bare' },
   ],
-  adminRoutes: [],
+  // Rendered inside the admin layout (module/admin) for admins and moderators; the alumni review itself is admin-only.
+  adminRoutes: [
+    { label: 'Alumni requests', path: '/admin/alumni', component: lazy(() => import('./pages/AlumniRequests.jsx')), title: 'Alumni requests', roles: ['admin'] },
+  ],
   slots: {},
 };

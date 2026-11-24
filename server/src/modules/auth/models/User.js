@@ -14,6 +14,12 @@ const userSchema = new mongoose.Schema(
     verified: { type: Boolean, default: false },
     suspended: { type: Boolean, default: false }, // set by A3 moderation (Phase 2)
     warnings: [{ reason: { type: String, maxlength: 500 }, at: { type: Date, default: Date.now }, _id: false }],
+    alumniStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+    alumniGradYear: { type: String, default: '' },
+    alumniNote: { type: String, default: '', maxlength: 300 },
+    alumniRequestedAt: { type: Date, default: null },
+    failedLogins: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
     avatarUrl: { type: String, default: '', maxlength: 200 },
     phone: { type: String, default: '', trim: true, maxlength: 20 }, // private: never returned by lookup
     settings: {
@@ -36,6 +42,7 @@ userSchema.methods.toPublic = function toPublic() {
     verified: this.verified,
     department: this.department,
     batch: this.batch,
+    alumniStatus: this.alumniStatus || 'none',
     avatarUrl: this.avatarUrl || '',
     phone: this.phone || '',
     settings: {

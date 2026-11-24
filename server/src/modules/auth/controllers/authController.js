@@ -5,6 +5,7 @@ const { validateRegister, validateLogin, validateForgot, validateReset } = requi
 const { setSessionCookie, clearSessionCookie } = require('../token');
 const { issueToken, consumeToken } = require('../tokens');
 const { sendVerificationEmail, sendResetEmail } = require('../mailer');
+const settings = require('../settings');
 
 const BCRYPT_ROUNDS = 12;
 // Compared against when the email is unknown, so response time does not reveal which emails are registered.
@@ -37,9 +38,30 @@ async function login(req, res) {
   const { email, password, remember } = validateLogin(req.body);
 
   const user = await User.findOne({ email }).select('+passwordHash');
+
+  // Account lockout: too many wrong passwords lock the account for a while, even for the right password.
+  if (user?.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+    const minutes = Math.max(1, Math.ceil((new Date(user.lockedUntil) - Date.now()) / 60000));
+    throw new HttpError(429, `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`, { code: 'locked' });
+  }
+
   const ok = await bcrypt.compare(password, user ? user.passwordHash : DUMMY_HASH);
-  if (!user || !ok) throw new HttpError(401, 'Incorrect email or password');
+  if (!user || !ok) {
+    if (user) {
+      // Atomic increment, so parallel guesses cannot dodge the counter.
+      const after = await User.findByIdAndUpdate(user._id, { $inc: { failedLogins: 1 } }, { returnDocument: 'after' });
+      if (after && after.failedLogins >= settings.lockoutAttempts) {
+        await User.findByIdAndUpdate(user._id, {
+          $set: { failedLogins: 0, lockedUntil: new Date(Date.now() + settings.lockoutMinutes * 60000) },
+        });
+      }
+    }
+    throw new HttpError(401, 'Incorrect email or password');
+  }
   if (user.suspended) throw new HttpError(403, 'This account is suspended');
+  if (user.failedLogins || user.lockedUntil) {
+    await User.findByIdAndUpdate(user._id, { $set: { failedLogins: 0, lockedUntil: null } });
+  }
 
   setSessionCookie(res, user._id, { remember });
   res.json({ user: user.toPublic() });

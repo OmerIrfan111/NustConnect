@@ -8,7 +8,7 @@
  */
 const config = require('../../core/config');
 const { HttpError } = require('../../core/errors');
-const { COOKIE_NAME, readToken } = require('./token');
+const { COOKIE_NAME, readToken, csrfOk } = require('./token');
 
 const DEMO_USER = Object.freeze({
   id: 'demo-ahmed-khan',
@@ -28,10 +28,18 @@ async function resolveUser(req) {
     const user = await User.findById(session.id);
     // A password change ends every session that was issued before it.
     const changedAt = user?.passwordChangedAt ? Math.floor(new Date(user.passwordChangedAt).getTime() / 1000) : 0;
-    if (user && !user.suspended && session.iat >= changedAt) return toSessionUser(user);
+    if (user && !user.suspended && session.iat >= changedAt) {
+      req.sessionSource = 'cookie';
+      return toSessionUser(user);
+    }
   }
+  req.sessionSource = 'fake';
   return config.fakeAuth ? { ...DEMO_USER } : null;
 }
+
+/** CSRF: a state-changing request carried by the real session cookie must echo the XSRF-TOKEN cookie in a header. */
+const csrfProblem = (req) =>
+  req.sessionSource === 'cookie' && !csrfOk(req) ? new HttpError(403, 'Security check failed. Refresh the page and try again.', { code: 'csrf' }) : null;
 
 /** Sets req.user when a session exists, never fails with 401. */
 const optionalAuth = async (req, res, next) => {
@@ -48,6 +56,8 @@ const requireAuth = async (req, res, next) => {
   try {
     const user = await resolveUser(req);
     if (!user) return next(new HttpError(401, 'Authentication required'));
+    const csrf = csrfProblem(req);
+    if (csrf) return next(csrf);
     if (!user.verified) return next(new HttpError(403, 'Verify your email to continue', { code: 'unverified' }));
     req.user = user;
     next();
@@ -61,6 +71,8 @@ const requireSession = async (req, res, next) => {
   try {
     const user = await resolveUser(req);
     if (!user) return next(new HttpError(401, 'Authentication required'));
+    const csrf = csrfProblem(req);
+    if (csrf) return next(csrf);
     req.user = user;
     next();
   } catch (err) {

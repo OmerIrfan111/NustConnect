@@ -84,6 +84,30 @@
   color: var(--nc-teal-700);
   font-size: var(--nc-fs-small);
 }
+.danger {
+  border-color: var(--nc-danger);
+}
+.dangerBtn {
+  justify-self: start;
+  font: inherit;
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  min-height: 40px;
+  padding: var(--nc-space-2) var(--nc-space-5);
+  color: var(--nc-on-primary);
+  background: var(--nc-danger);
+  border: 1.5px solid var(--nc-danger);
+  border-radius: var(--nc-radius-sm);
+  cursor: pointer;
+}
+.dangerBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.dangerBtn:focus-visible {
+  outline: none;
+  box-shadow: var(--nc-focus-ring);
+}
 @media (max-width: 600px) {
   .card {
     padding: var(--nc-space-4);

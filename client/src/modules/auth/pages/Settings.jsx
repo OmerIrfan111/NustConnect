@@ -2,6 +2,8 @@ import { useState } from 'react';
 import http from '@core/api/http.js';
 import { useAuth } from '../useAuth.js';
 import Field from '../components/Field.jsx';
+import AlumniSection from '../components/AlumniSection.jsx';
+import DeleteAccount from '../components/DeleteAccount.jsx';
 import form from '../components/form.module.css';
 import styles from '../components/account.module.css';
 
@@ -73,6 +75,9 @@ export default function Settings() {
           {busy ? 'Saving…' : 'Save settings'}
         </button>
       </form>
+
+      <AlumniSection />
+      <DeleteAccount />
     </div>
   );
 }
