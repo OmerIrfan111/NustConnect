@@ -1,0 +1,76 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-space-5);
+  max-width: 780px;
+}
+
+.backLink {
+  color: var(--nc-teal-700);
+  font-weight: var(--nc-fw-semibold);
+  font-size: var(--nc-fs-small);
+  text-decoration: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-space-4);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--nc-space-4);
+}
+
+.privacyNote {
+  margin: 0;
+  padding: var(--nc-space-3) var(--nc-space-4);
+  border-radius: var(--nc-radius-sm);
+  background: var(--nc-teal-light);
+  color: var(--nc-navy);
+  font-size: var(--nc-fs-small);
+  line-height: var(--nc-lh-body);
+}
+
+.fileLabel {
+  display: block;
+  font-size: var(--nc-fs-label);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-text);
+  margin-bottom: var(--nc-space-2);
+}
+
+.fileInput {
+  display: block;
+  width: 100%;
+  font-size: var(--nc-fs-small);
+}
+
+.fileHint {
+  margin: var(--nc-space-1) 0 0;
+  font-size: var(--nc-fs-xs);
+  color: var(--nc-text-2);
+}
+
+.errorBox {
+  margin: 0;
+  padding: var(--nc-space-3) var(--nc-space-4);
+  border-radius: var(--nc-radius-sm);
+  background: var(--nc-danger-light);
+  color: var(--nc-danger);
+  font-size: var(--nc-fs-small);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nc-space-3);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
