@@ -1,8 +1,11 @@
+import { lazy } from 'react';
 import { Map as MapIcon, Receipt, Compass } from 'lucide-react';
-import { placeholder } from '@core/pages/Placeholder.jsx';
 
-const P = (title) => placeholder('campus', title);
-const PublicP = (title) => placeholder('campus', title, { homeHref: '/', homeLabel: 'Back to Home' });
+const CampusMap = lazy(() => import('./pages/CampusMap.jsx'));
+const FreshieGuide = lazy(() => import('./pages/FreshieGuide.jsx'));
+const BillsList = lazy(() => import('./pages/BillsList.jsx'));
+const NewBill = lazy(() => import('./pages/NewBill.jsx'));
+const BillDetail = lazy(() => import('./pages/BillDetail.jsx'));
 
 export default {
   slug: 'campus',
@@ -13,13 +16,14 @@ export default {
     { label: 'Freshie Guide', path: '/guide', icon: Compass, group: 'more', order: 250 },
   ],
   routes: [
-    { path: '/bills', component: P('Bill Splitting'), title: 'Bill Splitting' },
-    { path: '/bills/new', component: P('Create a Bill'), title: 'New bill' },
-    { path: '/bills/:id', component: P('Bill details'), title: 'Bill' },
+    { path: '/bills', component: BillsList, title: 'Bill Splitting' },
+    { path: '/bills/new', component: NewBill, title: 'New bill' },
+    { path: '/bills/:id', component: BillDetail, title: 'Bill' },
   ],
+  // Guests may open the map and the guide without logging in.
   publicRoutes: [
-    { path: '/map', component: PublicP('Campus Map'), title: 'Campus Map' },
-    { path: '/guide', component: PublicP('Freshie Guide'), title: 'Freshie Guide' },
+    { path: '/map', component: CampusMap, title: 'Campus Map' },
+    { path: '/guide', component: FreshieGuide, title: 'Freshie Guide' },
   ],
   adminRoutes: [],
   slots: {},
