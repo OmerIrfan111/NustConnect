@@ -8,6 +8,7 @@ const contributions = require('./controllers/contributionController');
 const categories = require('./controllers/categoryController');
 const auditLog = require('./controllers/auditController');
 const analyticsCtrl = require('./controllers/analyticsController');
+const Report = require('./models/Report');
 
 const router = express.Router();
 
@@ -44,4 +45,13 @@ router.post('/campaigns/:id/updates', requireRole('admin'), contributions.addUpd
 router.get('/audit', requireRole('admin'), auditLog.list);
 router.get('/analytics', requireRole('admin'), analyticsCtrl.analytics);
 
-module.exports = { slug: 'admin', router };
+/**
+ * "Delete my data" (called by the auth module through the registry). A report stays so the content can still be moderated, but
+ * it no longer points at the person who filed it. The audit log is kept as-is: it records what staff did.
+ */
+async function deleteUserData(userId) {
+  if (!userId) return; // never an unfiltered update
+  await Report.updateMany({ reporterId: String(userId) }, { reporterId: 'deleted-user' });
+}
+
+module.exports = { slug: 'admin', router, deleteUserData };
