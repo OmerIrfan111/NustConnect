@@ -1,7 +1,13 @@
+import { lazy } from 'react';
 import { MessageCircleQuestion, ClipboardList, BookOpen } from 'lucide-react';
-import { placeholder } from '@core/pages/Placeholder.jsx';
 
-const P = (title) => placeholder('support', title);
+const ComplaintsList = lazy(() => import('./pages/ComplaintsList.jsx'));
+const NewComplaint = lazy(() => import('./pages/NewComplaint.jsx'));
+const ComplaintDetail = lazy(() => import('./pages/ComplaintDetail.jsx'));
+const HelpBox = lazy(() => import('./pages/HelpBox.jsx'));
+const FaqList = lazy(() => import('./pages/FaqList.jsx'));
+const FaqDetail = lazy(() => import('./pages/FaqDetail.jsx'));
+const AdminSupport = lazy(() => import('./pages/AdminSupport.jsx'));
 
 export default {
   slug: 'support',
@@ -12,15 +18,17 @@ export default {
     { label: 'FAQ', path: '/faq', icon: BookOpen, group: 'more', order: 240 },
   ],
   routes: [
-    { path: '/complaints', component: P('My Complaints'), title: 'Complaints' },
-    { path: '/complaints/new', component: P('Submit a Complaint'), title: 'New complaint' },
-    { path: '/complaints/:id', component: P('Complaint details'), title: 'Complaint' },
-    { path: '/help-box', component: P('Anonymous Help Box'), title: 'Help Box' },
+    { path: '/complaints', component: ComplaintsList, title: 'My Complaints' },
+    { path: '/complaints/new', component: NewComplaint, title: 'Submit a Complaint' },
+    { path: '/complaints/:id', component: ComplaintDetail, title: 'Complaint Details' },
+    { path: '/help-box', component: HelpBox, title: 'Anonymous Help Box' },
   ],
   publicRoutes: [
-    { path: '/faq', component: placeholder('support', 'FAQ & Wiki', { homeHref: '/', homeLabel: 'Back to Home' }), title: 'FAQ' },
-    { path: '/faq/:id', component: placeholder('support', 'FAQ article', { homeHref: '/', homeLabel: 'Back to Home' }), title: 'FAQ' },
+    { path: '/faq', component: FaqList, title: 'Campus FAQ & Wiki' },
+    { path: '/faq/:id', component: FaqDetail, title: 'FAQ Article' },
   ],
-  adminRoutes: [],
+  adminRoutes: [
+    { label: 'Complaints & Help Box', path: '/admin/support', component: AdminSupport, roles: ['moderator', 'admin'], title: 'Support Queue' },
+  ],
   slots: {},
 };
