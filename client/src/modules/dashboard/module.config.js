@@ -1,5 +1,7 @@
+import { lazy } from 'react';
 import { LayoutDashboard, Bell } from 'lucide-react';
-import { placeholder } from '@core/pages/Placeholder.jsx';
+import GlobalSearchBar from './components/GlobalSearchBar.jsx';
+import NotificationBell from './components/NotificationBell.jsx';
 
 export default {
   slug: 'dashboard',
@@ -9,13 +11,11 @@ export default {
     { label: 'Notifications', path: '/notifications', icon: Bell, group: 'main', order: 110 },
   ],
   routes: [
-    { path: '/dashboard', component: placeholder('dashboard', 'Student Dashboard', { homeHref: '/', homeLabel: 'Back to Home' }), title: 'Dashboard' },
-    { path: '/notifications', component: placeholder('dashboard', 'Notifications'), title: 'Notifications' },
-    { path: '/search', component: placeholder('dashboard', 'Search results'), title: 'Search' },
+    { path: '/dashboard', component: lazy(() => import('./pages/Dashboard.jsx')), title: 'Dashboard' },
+    { path: '/notifications', component: lazy(() => import('./pages/Notifications.jsx')), title: 'Notifications' },
+    { path: '/search', component: lazy(() => import('./pages/Search.jsx')), title: 'Search' },
   ],
   publicRoutes: [],
   adminRoutes: [],
-  // A2 replaces these with the real NotificationBell and GlobalSearchBar:
-  // slots: { topbarSearch: GlobalSearchBar, topbarNotifications: NotificationBell },
-  slots: {},
+  slots: { topbarSearch: GlobalSearchBar, topbarNotifications: NotificationBell },
 };

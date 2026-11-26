@@ -1,0 +1,161 @@
+/* Search (matches the base stub it replaces) */
+.search {
+  position: relative;
+}
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nc-text-2);
+  pointer-events: none;
+}
+.searchInput {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-sm);
+  background: var(--nc-bg);
+  font-size: var(--nc-fs-small);
+}
+.searchInput:focus {
+  outline: none;
+  border-color: var(--nc-teal);
+  background: var(--nc-surface);
+  box-shadow: var(--nc-focus-ring);
+}
+
+/* Bell */
+.bellWrap {
+  position: relative;
+  margin-left: auto;
+  flex: none;
+}
+.bell {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+  background: var(--nc-bg);
+  color: var(--nc-navy);
+  cursor: pointer;
+}
+.bell:focus-visible {
+  outline: none;
+  box-shadow: var(--nc-focus-ring);
+}
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--nc-radius-full);
+  background: var(--nc-amber);
+  color: var(--nc-amber-ink);
+  font-size: 11px;
+  font-weight: var(--nc-fw-bold);
+  border: 2px solid var(--nc-bg);
+  box-sizing: content-box;
+}
+
+/* Dropdown */
+.panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: var(--nc-z-menu);
+  width: min(380px, calc(100vw - 32px));
+  background: var(--nc-surface);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-radius-md);
+  box-shadow: var(--nc-shadow-menu);
+  padding: var(--nc-space-3);
+  display: grid;
+  gap: var(--nc-space-2);
+}
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--nc-space-1) var(--nc-space-2);
+  color: var(--nc-text);
+  font-size: var(--nc-fs-small);
+}
+.linkBtn {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--nc-fs-xs);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-teal-700);
+  cursor: pointer;
+}
+.linkBtn:disabled {
+  color: var(--nc-text-2);
+  cursor: default;
+}
+.note {
+  margin: 0;
+  padding: var(--nc-space-4);
+  text-align: center;
+  color: var(--nc-text-2);
+  font-size: var(--nc-fs-small);
+}
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  display: grid;
+  gap: 2px;
+}
+.item {
+  width: 100%;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  border: 0;
+  border-radius: var(--nc-radius-sm);
+  background: transparent;
+  padding: var(--nc-space-3);
+  font: inherit;
+  cursor: pointer;
+  color: var(--nc-text);
+}
+.item:hover,
+.item:focus-visible {
+  background: var(--nc-bg);
+  outline: none;
+}
+.unread {
+  background: var(--nc-teal-light);
+}
+.itemTitle {
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+}
+.itemBody {
+  font-size: var(--nc-fs-xs);
+  color: var(--nc-text-2);
+}
+.itemWhen {
+  font-size: var(--nc-fs-xs);
+  color: var(--nc-text-2);
+}
+.all {
+  text-align: center;
+  padding: var(--nc-space-2);
+  font-size: var(--nc-fs-small);
+  font-weight: var(--nc-fw-semibold);
+  color: var(--nc-teal-700);
+  text-decoration: none;
+  border-top: 1px solid var(--nc-border);
+}
