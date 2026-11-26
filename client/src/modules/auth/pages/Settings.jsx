@@ -7,8 +7,16 @@ import DeleteAccount from '../components/DeleteAccount.jsx';
 import form from '../components/form.module.css';
 import styles from '../components/account.module.css';
 
-/** Settings: privacy and contact preferences. */
+/**
+ * Settings: privacy and contact preferences.
+ * The session can end while this page is still mounted (delete my data, sign out), so the form only renders with a user.
+ */
 export default function Settings() {
+  const { user } = useAuth();
+  return user ? <SettingsForm /> : null;
+}
+
+function SettingsForm() {
   const { user, setUser } = useAuth();
   const s = user.settings || {};
   const [values, setValues] = useState({

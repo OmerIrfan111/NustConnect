@@ -9,8 +9,16 @@ import styles from '../components/account.module.css';
 
 const initials = (name = '') => name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 
-/** My Profile: view and edit name, department, batch and avatar. */
+/**
+ * My Profile: view and edit name, department, batch and avatar.
+ * The session can end while this page is still mounted (delete my data, sign out), so the form only renders with a user.
+ */
 export default function Profile() {
+  const { user } = useAuth();
+  return user ? <ProfileForm /> : null;
+}
+
+function ProfileForm() {
   const { user, setUser } = useAuth();
   const [values, setValues] = useState({ name: user.name, department: user.department || '', batch: user.batch || '' });
   const [errors, setErrors] = useState({});

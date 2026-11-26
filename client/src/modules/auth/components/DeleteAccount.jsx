@@ -1,15 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import http from '@core/api/http.js';
-import { useAuth } from '../useAuth.js';
+import { leaveApp } from '../leaveApp.js';
 import Field from './Field.jsx';
 import form from './form.module.css';
 import styles from './account.module.css';
 
 /** Settings "danger zone": delete my account and data. Asks for the password again, and for an explicit confirmation. */
 export default function DeleteAccount() {
-  const { setUser } = useAuth();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [sure, setSure] = useState(false);
@@ -24,8 +21,7 @@ export default function DeleteAccount() {
     setBusy(true);
     try {
       await http.delete('/auth/me', { data: { password } });
-      setUser(null);
-      navigate('/', { replace: true });
+      leaveApp(); // reloads the home page as a guest
     } catch (err) {
       setError(err?.details?.password || err?.message || 'Could not delete your account.');
       setBusy(false);

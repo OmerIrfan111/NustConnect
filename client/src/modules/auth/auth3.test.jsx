@@ -4,7 +4,9 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 vi.mock('@core/api/http.js', () => ({ default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() } }));
+vi.mock('./leaveApp.js', () => ({ leaveApp: vi.fn() }));
 import http from '@core/api/http.js';
+import { leaveApp } from './leaveApp.js';
 import { AuthProvider } from './useAuth.js';
 import Settings from './pages/Settings.jsx';
 import Login from './pages/Login.jsx';
@@ -67,7 +69,7 @@ describe('alumni verification section', () => {
 });
 
 describe('delete my data', () => {
-  test('is hidden behind a button, needs the password and an explicit confirmation, then signs out', async () => {
+  test('is hidden behind a button, needs the password and an explicit confirmation, then reloads the home page', async () => {
     http.delete.mockResolvedValue({ data: { deleted: true } });
     renderAt('/settings', BASE);
     expect(screen.queryByLabelText('Confirm with your password')).not.toBeInTheDocument();
@@ -83,7 +85,7 @@ describe('delete my data', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /I understand/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Delete everything' }));
     await waitFor(() => expect(http.delete).toHaveBeenCalledWith('/auth/me', { data: { password: 'Passw0rdOK' } }));
-    expect(await screen.findByText('HOME')).toBeInTheDocument();
+    await waitFor(() => expect(leaveApp).toHaveBeenCalledTimes(1));
   });
 
   test('a wrong password shows the server message and keeps the account', async () => {
@@ -94,7 +96,7 @@ describe('delete my data', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: /I understand/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Delete everything' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect password');
-    expect(screen.queryByText('HOME')).not.toBeInTheDocument();
+    expect(leaveApp).not.toHaveBeenCalled();
   });
 
   test('cancel closes the form again', async () => {
