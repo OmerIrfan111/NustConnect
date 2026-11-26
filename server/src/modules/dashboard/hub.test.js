@@ -11,6 +11,8 @@ const { search, summary } = require('./aggregate');
 /** App with extra fake modules registered in the loader's registry, exactly where real manifests live. */
 function appWith(modules, timeoutMs = 80) {
   const app = createApp();
+  // Only the fake modules: real modules merged into the repo must not change what these tests see.
+  app.locals.modules.clear();
   modules.forEach((m) => app.locals.modules.set(m.slug, m));
   app.locals.providerTimeoutMs = timeoutMs;
   return app;
