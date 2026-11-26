@@ -6,6 +6,7 @@ const { HttpError } = require('../../core/errors');
 const notifications = require('./controllers/notificationController');
 const hub = require('./controllers/hubController');
 const { runDigest } = require('./digest');
+const Notification = require('./models/Notification');
 
 const router = express.Router();
 
@@ -33,8 +34,15 @@ router.post('/digest/run', async (req, res) => {
   res.json(await runDigest(req.app.locals.modules || new Map()));
 });
 
+/** "Delete my data" (called by the auth module through the registry): a person's notifications go with their account. */
+async function deleteUserData(userId) {
+  if (!userId) return; // never an unfiltered delete
+  await Notification.deleteMany({ userId: String(userId) });
+}
+
 module.exports = {
   slug: 'dashboard',
   router,
+  deleteUserData,
   // No searchProvider / summaryProvider: the dashboard has no content of its own to search.
 };
