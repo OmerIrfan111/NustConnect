@@ -1,18 +1,25 @@
-/** campus (C3) server manifest: BASE STUB. Owner replaces this; keep `slug` and `router`. See docs/CONTRACTS.md §1, §8. */
+/** campus (C3) server manifest. Mounted at /api/campus. See docs/modules/campus/README.md. */
 const express = require('express');
+const { requireAuth, requireRole } = require('../auth/session');
+const pub = require('./controllers/publicController');
+const bills = require('./controllers/billController');
+const { searchProvider, summaryProvider, moderationHooks, deleteUserData } = require('./providers');
 
 const router = express.Router();
+
 router.get('/ping', (req, res) => res.json({ ok: true, slug: 'campus' }));
 
-// Campus locations contract (§8). Stub: 5 sample points around NUST H-12 (sample data).
-const SAMPLE_LOCATIONS = [
-  { id: 'sample-loc-1', name: 'Main Gate', category: 'gate', lat: 33.6425, lng: 72.9902 },
-  { id: 'sample-loc-2', name: 'Central Library', category: 'academic', lat: 33.6431, lng: 72.9916 },
-  { id: 'sample-loc-3', name: 'SEECS', category: 'academic', lat: 33.6419, lng: 72.9931 },
-  { id: 'sample-loc-4', name: 'Concordia Food Court', category: 'food', lat: 33.6437, lng: 72.9894 },
-  { id: 'sample-loc-5', name: 'Boys Hostel Block', category: 'hostel', lat: 33.6445, lng: 72.9945 },
-];
+// Public, read-only: the map, its locations contract (docs/CONTRACTS.md §8) and the Freshie Guide (guests allowed)
+router.get('/locations', pub.listLocations);
+router.get('/guides', pub.listGuides);
 
-router.get('/locations', (req, res) => res.json(SAMPLE_LOCATIONS));
+// Bill Splitting (FR-14): signed in, participants only
+router.get('/bills', requireAuth, bills.listBills);
+router.post('/bills', requireAuth, bills.createBill);
+router.post('/bills/reminders/run', requireRole('admin'), bills.runReminders);
+router.get('/bills/:id', requireAuth, bills.getBill);
+router.patch('/bills/:id', requireAuth, bills.updateBill);
+router.delete('/bills/:id', requireAuth, bills.deleteBill);
+router.post('/bills/:id/payments', requireAuth, bills.recordPayment);
 
-module.exports = { slug: 'campus', router };
+module.exports = { slug: 'campus', router, searchProvider, summaryProvider, moderationHooks, deleteUserData };
