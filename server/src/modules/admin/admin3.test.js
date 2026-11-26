@@ -14,6 +14,14 @@ jest.mock('./models/Category', () => global.__mk('categories', (r) => ({ id: r._
 const request = require('supertest');
 
 const appAs = (...a) => global.__appAs(...a);
+
+/** An app whose module registry holds ONLY the given fake modules, so real modules merged into the repo cannot change the figures. */
+const appWithOnly = (role, modules = []) => {
+  const app = appAs(role);
+  app.locals.modules.clear();
+  modules.forEach((m) => app.locals.modules.set(m.slug, m));
+  return app;
+};
 beforeEach(() => global.__clearDb());
 
 const report = (over = {}) => {
@@ -102,7 +110,7 @@ describe('analytics (QA-3: data from every module, no personal data)', () => {
     ];
     const rides = provider('rideshare', 'Active Rides', 12);
     const market = provider('marketplace', 'Marketplace Listings', '34');
-    const res = await request(appAs('admin', [rides, market])).get('/api/admin/analytics');
+    const res = await request(appWithOnly('admin', [rides, market])).get('/api/admin/analytics');
 
     expect(res.status).toBe(200);
     expect(res.body.modules).toEqual([
@@ -123,7 +131,7 @@ describe('analytics (QA-3: data from every module, no personal data)', () => {
       { slug: 'lostfound', summaryProvider: async () => 'nonsense' },
       { slug: 'noprovider' },
     ];
-    const app = appAs('admin', mods);
+    const app = appWithOnly('admin', mods);
     app.locals.providerTimeoutMs = 100;
     const t0 = Date.now();
     const res = await request(app).get('/api/admin/analytics');
@@ -134,7 +142,7 @@ describe('analytics (QA-3: data from every module, no personal data)', () => {
   });
 
   test('works with no providers at all', async () => {
-    const res = await request(appAs('admin')).get('/api/admin/analytics');
+    const res = await request(appWithOnly('admin')).get('/api/admin/analytics');
     expect(res.body.modules).toEqual([]);
     expect(res.body.platform.reportsOpen).toBe(0);
   });

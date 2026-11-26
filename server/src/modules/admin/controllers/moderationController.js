@@ -33,11 +33,14 @@ async function hide(req, res) {
 
   const hook = hookFor(registryOf(req), report.targetType, 'hide');
   if (!hook) throw new HttpError(409, `No module can hide "${report.targetType}" content yet`);
+  let done;
   try {
-    await hook.run(report.targetId);
+    done = await hook.run(report.targetId);
   } catch (err) {
     throw new HttpError(502, `The ${hook.slug} module could not hide this item`);
   }
+  // `false` means the module has no such item: nothing was hidden, so nothing is marked or audited.
+  if (done === false) throw new HttpError(404, `The ${hook.slug} module has no "${report.targetType}" item to hide`);
   res.json({ report: await finish(req, report, { status: 'resolved', action: 'hidden', note, auditAction: 'report.hide' }) });
 }
 
@@ -49,11 +52,13 @@ async function restore(req, res) {
 
   const hook = hookFor(registryOf(req), report.targetType, 'restore');
   if (!hook) throw new HttpError(409, `No module can restore "${report.targetType}" content yet`);
+  let done;
   try {
-    await hook.run(report.targetId);
+    done = await hook.run(report.targetId);
   } catch (err) {
     throw new HttpError(502, `The ${hook.slug} module could not restore this item`);
   }
+  if (done === false) throw new HttpError(404, `The ${hook.slug} module has no "${report.targetType}" item to restore`);
   res.json({ report: await finish(req, report, { status: 'resolved', action: 'restored', note, auditAction: 'report.restore' }) });
 }
 

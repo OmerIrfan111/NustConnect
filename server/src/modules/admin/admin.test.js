@@ -270,6 +270,25 @@ describe('moderation actions (QA-2)', () => {
     expect(db('audit')[0].action).toBe('report.dismiss');
   });
 
+  // Modules answer `false` (rather than throwing) when they have no such item, for example a report about content they do not own.
+  test('a hook that resolves false means nothing was hidden: 404, report unchanged, nothing audited', async () => {
+    const r = seedReport();
+    const none = { slug: 'rideshare', moderationHooks: { hide: async () => false, restore: async () => false } };
+    const res = await request(appAs('moderator', [none])).post(`/api/admin/reports/${r._id}/hide`).send({});
+    expect(res.status).toBe(404);
+    expect(db('reports')[0]).toMatchObject({ status: 'open', action: 'none' });
+    expect(db('audit') || []).toHaveLength(0);
+  });
+
+  test('a restore hook that resolves false leaves the report hidden and unaudited', async () => {
+    const r = seedReport({ status: 'resolved', action: 'hidden' });
+    const none = { slug: 'rideshare', moderationHooks: { hide: async () => false, restore: async () => false } };
+    const res = await request(appAs('moderator', [none])).post(`/api/admin/reports/${r._id}/restore`).send({});
+    expect(res.status).toBe(404);
+    expect(db('reports')[0].action).toBe('hidden');
+    expect(db('audit') || []).toHaveLength(0);
+  });
+
   test('unknown or malformed report ids are 404', async () => {
     const app = appAs('moderator');
     expect((await request(app).post('/api/admin/reports/not-an-id/hide').send({})).status).toBe(404);
