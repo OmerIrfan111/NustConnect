@@ -603,6 +603,9 @@ describe('delete my data (QA-3)', () => {
     global.__auth.tokens.push({ userId: u.id, type: 'verify', tokenHash: 'h1', usedAt: null, expiresAt: new Date(Date.now() + 1000) });
     const ok = { slug: 'rideshare', deleteUserData: jest.fn(async () => {}) };
     const broken = { slug: 'reviews', deleteUserData: async () => { throw new Error('db down'); } };
+    // Only the fake modules take part: real modules merged into the repo have their own deleteUserData.
+    const real = new Map(app.locals.modules);
+    app.locals.modules.clear();
     app.locals.modules.set('rideshare', ok);
     app.locals.modules.set('reviews', broken);
 
@@ -614,8 +617,8 @@ describe('delete my data (QA-3)', () => {
     expect(global.__auth.tokens.filter((t) => t.userId === u.id)).toHaveLength(0);
     expect(res.headers['set-cookie'].join(';')).toMatch(/nc_token=;/);
     expect((await u.get('/api/auth/me')).status).toBe(401);
-    app.locals.modules.delete('rideshare');
-    app.locals.modules.delete('reviews');
+    app.locals.modules.clear();
+    real.forEach((m, slug) => app.locals.modules.set(slug, m));
   });
 
   test('an unverified account can delete itself too', async () => {
